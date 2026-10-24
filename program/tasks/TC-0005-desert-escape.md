@@ -6,7 +6,7 @@
 | 状态 | **done** |
 | 角色 | C3 关卡开发（等 C5 试玩验收） |
 | 优先级 | P0 |
-| 依赖 | 无（设计卡 `levels/L06-沙漠逃亡.md` 与代码同天落地） |
+| 依赖 | 无（设计卡 `levels/L05-沙漠逃亡.md` 与代码同天落地，当时编号是 L06） |
 | 创建 / 完成 | 2026-10-24 / 2026-10-24 |
 
 ---
@@ -41,7 +41,7 @@
 
 **不许改的**：`src/content/**`、`index.html`（要改先发 CHANGE 卡）
 
-**玩法设计**（家长 / 小朋友）：见 `levels/L06-沙漠逃亡.md`（场景 / 道具 / 动作 / 目标 / 规则 / 参数表）。
+**玩法设计**（家长 / 小朋友）：见 `levels/L05-沙漠逃亡.md`（场景 / 道具 / 动作 / 目标 / 规则 / 参数表）。
 
 ---
 
@@ -52,7 +52,7 @@
 - 新增 `src/levels/desert-escape/level.js`（关卡主逻辑 + 顶部参数表）
 - `src/levels/index.js` 加一行：`{ id:'desert-escape', files:['levels/desert-escape/props.js','levels/desert-escape/level.js'] }`
 - 新增 `scripts/test-desert.sh`、`scripts/shot-level.sh`；`scripts/smoke.sh` 的关卡列表加上这一关
-- `levels/L06-沙漠逃亡.md`、`transcripts/2026-10-24-第五关沙漠逃亡-口述.md`、`levels/README.md`
+- `levels/L05-沙漠逃亡.md`（当时叫 `L06`）、`transcripts/2026-10-24-第五关沙漠逃亡-口述.md`、`levels/README.md`
 - `program/CHANGELOG.md`（v2.4.0）、`program/DECISIONS.md`（D-007）
 
 **CHANGE（引擎，已按最小改动做掉，老关卡行为不变）**：
@@ -90,8 +90,8 @@ zsh scripts/with-server.sh zsh scripts/smoke.sh
 5 个传送门全 `done`、逐关进出的任务条都正常、零报错。
 
 **遗留问题 / 下次再做**：
-- **编号冲突**：小朋友说的「第 5 关」既可能是猜谜语（`L05`）也可能是沙漠（`L06`），
-  等小朋友自己确认（见 `levels/L06-沙漠逃亡.md` 的待确认）。
+- **编号**：已按用户要求「以游戏源码为准」定案 —— 沙漠 = `levels/L05-沙漠逃亡.md`（`order 50`），
+  谜语点子放 `levels/_ideas/2026-10-23-猜谜语.md`（已落地成游戏第 1 关）。
 - **待小朋友试玩**：2 分钟够不够、箭头偏得合不合适、骑马按 F 冲刺要不要先跟他说。
 - 头顶箭头用的是引擎通用箭头（比较小），要不要给沙漠做一个更大的（见设计卡待确认）。
 - `scripts/regress-all.sh` 只回归老 4 关；第 5 关有自己的 `test-desert.sh`，
