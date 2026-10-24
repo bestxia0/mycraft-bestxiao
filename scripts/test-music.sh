@@ -32,7 +32,7 @@ echo "  $(ev "JSON.stringify({该放哪首:Game.Music.current,在响没:Game.Mus
 echo ""
 echo "===== D. 切关卡 = 换曲子（广场 + 5 关逐个走一遍） ====="
 ev "(()=>{Game.debug.unlockAll();return 'ok'})()" >/dev/null
-for L in riddle-forest chest-valley hanzi-classroom arena-battle desert-escape hub-square; do
+for L in riddle-forest chest-valley hanzi-classroom arena-battle desert-escape paint-the-field hub-square; do
   r=$(ev "(()=>{Game.debug.go('$L');return JSON.stringify({id:Game.Music.current,在响:Game.Music.playing,正好是这一关的曲子:Game.Music.current==='$L'})})()")
   echo "  进 $L → $r"
   sleep 0.7

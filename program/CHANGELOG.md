@@ -6,6 +6,64 @@
 
 ---
 
+## v2.6.0 · 2026-10-24
+
+**主题**：新增**第 6 关 · 踩白大草原**（把绿色踩成白色），并给它配了专属背景音乐
+
+### 为什么
+- 用户转述小朋友 2026-10-24 的口述（原文见 `transcripts/2026-10-24-第六关把绿色踩成白色-口述.md`）：
+  「地板全都是绿色的，我们要把绿色踩成白色……在倒计时结束前，把所有绿色踩成白色。……
+  你踩完之后还需要找到正确的传送门才能进入下一关。总共时间为 6 分钟。区域大一些，也是有小马的。
+  我们骑的那只马踩的地方等于我们踩的地方范围很大」。
+- 这条玩法其实就是 `levels/_ideas/2026-10-23-把绿色踩成白色.md` 那个点子（当时叫「第三关的第二关」），
+  这次小朋友讲全了（倒计时 / 找门 / 骑马 / 区域大）→ 落成正式关卡，点子卡标注「已落地」。
+
+### 新增：第 6 关 · 踩白大草原（`src/levels/paint-the-field/`）
+- **一整片会变色的草地**：30 × 30 格、一格 2 步 = **900 块**（60 × 60 步），踩过的格子由绿变白。
+- **不是 900 个方块 Mesh，而是一张 canvas 贴图**（一格 8 × 8 像素 + `NearestFilter`）：
+  只有 1 个 Mesh，踩白一次就是 `fillRect` 一笔 —— 手机 / 老电脑不会掉帧。
+  关卡私货放在 `props.js`（`Game.Paint.makeField()` 地板 + `Game.Paint.makeHorse()` 方块小马）。
+- **走路踩 1 块，骑马踩 3 × 3 = 9 块**（小朋友说的「骑马踩的地方……范围很大」）。
+  骑马沿用第 5 关的套路：走到小马跟前按 `F` 骑上去，`W A S D` 跑，按 `E` 下马。
+- **6 分钟倒计时**（一进关就开始）；**踩不完 = 没通关** → 不弹失败面板，1.7 秒后自动回小镇重来
+  （和第 5 关同一个规矩），并记一次 `attempts`。
+- **全踩白只是前半段**：踩完才停表，草原外面那一圈 **6 座传送门**才亮起来（变绿、牌子换成
+  「❓ 不知道通向哪里…」）；**只有 1 座是对的，每次进关重新随机** —— 走错只被弹开 + 提示
+  「这扇门不通往下一关……已经试了 N 扇」，不扣金币、不结束。
+- **不预置答案**：全踩白之后头顶箭头**收起来**（只指着「最近的绿地」，踩完就没有目标了），
+  不指向正确的门（和 D-004 / 第 1 关谜语面板不放图案是同一条理念）。
+- 头顶箭头指向「离你最近的那一块绿地」，小朋友不用满场乱找还剩哪里没踩。
+- 通关奖励 40 🪙，记「最快一次用时 / 通关次数」；再进关全部重置（地板回绿、门重新锁、马回家）。
+
+### 背景音乐：第 6 关专属曲子《踩白大草原》
+- `src/engine/music.js` 的 `TRACKS` 加一首（key = 关卡 id `paint-the-field`）：
+  **126 bpm / 三角波 / pop 鼓点**，蹦蹦跳跳的脚步感。没配之前这一关会兜底放 `default`。
+
+### 改了哪些文件
+- 新增：`src/levels/paint-the-field/props.js`、`src/levels/paint-the-field/level.js`、`scripts/test-paint.sh`
+- 新增文档：`levels/L06-踩白大草原.md`、`transcripts/2026-10-24-第六关把绿色踩成白色-口述.md`、
+  `program/tasks/TC-0007-paint-the-field.md`
+- 引擎（只加数据）：`src/engine/music.js`（一首新曲子）、`src/engine/namespace.js`（版本号 2.6.0）
+- 清单：`src/levels/index.js` 加一行
+- 脚本：`scripts/smoke.sh`、`scripts/test-errors.sh`、`scripts/test-music.sh` 的关卡列表加上这一关
+- 文档：本文件、`program/DECISIONS.md`（D-010）、`program/BOARD.md`、`program/ROADMAP.md`、
+  `README.md`、`AGENTS.md`、`docs/背景音乐.md`、`levels/README.md`、
+  `levels/_ideas/2026-10-23-把绿色踩成白色.md`（标注已落地）
+
+### 验证（全绿）
+- `zsh scripts/check.sh` → 45 个 JS 文件语法全通过。
+- `zsh scripts/with-server.sh zsh scripts/test-paint.sh` → A~L 全绿
+  （登记 / 900 块 + 6 分钟 / 走路 1 块 / 骑马 9 块 / 骑马 2 秒 45 块 vs 走路 7 块 /
+  射线反推格子号一致 / 全踩白停表 + 6 门全亮 / 走错门弹开 + 计数 / 走对门通关 + 40 金币 /
+  没踩完走门被拦住 / 时间到自动回小镇 + attempts+1 / 再进关全部重置 / 时间预算）。
+- `zsh scripts/with-server.sh zsh scripts/regress-all.sh` → 老 4 关全流程通过。
+- `zsh scripts/with-server.sh zsh scripts/test-desert.sh` → 第 5 关专项全绿（骑马那套没被动过）。
+- `zsh scripts/with-server.sh zsh scripts/test-music.sh` → A~J 全绿（第 6 关现在有自己的曲子）。
+- `zsh scripts/with-server.sh zsh scripts/smoke.sh` → 广场 + 6 关都能进，任务条都正常。
+- `zsh scripts/with-server.sh zsh scripts/test-errors.sh` → `errors: []`、`warns: []`。
+
+---
+
 ## v2.5.0 · 2026-10-24
 
 **主题**：加**背景音乐**（每关一首，设置里能开 / 关）

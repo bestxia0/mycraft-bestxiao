@@ -1,5 +1,6 @@
 #!/bin/zsh
-# 重拍交付用预览图（docs/preview/*.png）：开始界面 / 广场 / 谜语 / 宝箱 / 汉字 / 擂台
+# 重拍交付用预览图（docs/preview/*.png）：
+#   开始界面 / 广场 / 谜语 / 宝箱 / 汉字 / 擂台 / 沙漠 / 踩白大草原
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -37,4 +38,10 @@ shot "$OUT/preview-4-classroom.png"
 ev "(()=>{Game.debug.go('arena-battle');return 'ok'})()" >/dev/null
 sleep 2
 shot "$OUT/preview-5-arena.png"
+ev "(()=>{Game.debug.go('desert-escape');return 'ok'})()" >/dev/null
+sleep 2
+shot "$OUT/preview-6-desert.png"
+ev "(()=>{Game.debug.go('paint-the-field');return 'ok'})()" >/dev/null
+sleep 2
+shot "$OUT/preview-7-paint.png"
 echo DONE

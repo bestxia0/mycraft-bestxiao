@@ -16,7 +16,7 @@ echo "清档+重建所有关卡: $(ev "(()=>{Game.Save.resetProfile();Game.debug
 sleep 1.5
 echo "题库: $(ev "JSON.stringify(Game.debug.banks().map(b=>[b.bank,b.total,b.cats.length]))")"
 
-for L in riddle-forest chest-valley hanzi-classroom arena-battle hub-square; do
+for L in riddle-forest chest-valley hanzi-classroom arena-battle desert-escape paint-the-field hub-square; do
   echo "进 $L: $(ev "(()=>{Game.debug.go('$L');return Game.debug.state().name})()")"
   sleep 1.4
 done

@@ -22,7 +22,8 @@ window.Game.LEVELS = [
   { id: 'chest-valley',    files: ['levels/chest-valley/level.js'] },
   { id: 'hanzi-classroom', files: ['levels/hanzi-classroom/level.js'] },
   { id: 'arena-battle',    files: ['levels/arena-battle/level.js'] },
-  { id: 'desert-escape',   files: ['levels/desert-escape/props.js', 'levels/desert-escape/level.js'] }
+  { id: 'desert-escape',   files: ['levels/desert-escape/props.js', 'levels/desert-escape/level.js'] },
+  { id: 'paint-the-field', files: ['levels/paint-the-field/props.js', 'levels/paint-the-field/level.js'] }
 
   /* ↓↓↓ 以后新加的关卡写在这里，注意上一行末尾要加逗号 ↓↓↓ */
 ];
