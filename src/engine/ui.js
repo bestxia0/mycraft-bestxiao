@@ -125,9 +125,12 @@
       setTimeout(function () { el.style.opacity = '1'; }, 60);
     },
 
-    /* 擂台计时条（只有擂台关用）：
-         Game.UI.battle({ time: 512, hp: 80, hpMax: 100, alive: 3, total: 4 })
-         Game.UI.battle(null)    隐藏 */
+    /* 顶部大计时条（擂台关 / 沙漠关都用）：
+         Game.UI.battle({ time: 512, hp: 80, hpMax: 100, alive: 3, total: 4 })  擂台关
+         Game.UI.battle({ time: 120 })                                          只显示倒计时
+         Game.UI.battle(null)                                                   隐藏
+       血条只有传了 hpMax 才显示；「对手 N」只有传了 alive 才显示
+       （不传 = 藏起来，免得上一关的「对手 4」留在屏幕上）。 */
     battle(o) {
       const D = this.D;
       if (!D.battleHud) return;
@@ -145,12 +148,16 @@
         D.battleTime.textContent = text;
         D.battleTime.classList.toggle('urgent', t <= 30);
       }
+      const bar = D.battleHud.querySelector('.battle-bar');
+      if (bar) bar.classList.toggle('hidden', !o.hpMax);
       if (D.battleHp && o.hpMax) {
         const r = Game.clamp((o.hp || 0) / o.hpMax, 0, 1);
         D.battleHp.style.width = Math.round(r * 100) + '%';
         D.battleHp.style.background = r > 0.5 ? '#5ddc73' : (r > 0.25 ? '#ffd447' : '#ff6b6b');
       }
-      if (D.battleAlive && o.alive !== undefined) {
+      const hasAlive = o.alive !== undefined && o.alive !== null;
+      if (D.battleAlive) D.battleAlive.classList.toggle('hidden', !hasAlive);
+      if (D.battleAlive && hasAlive) {
         const label = '对手 ' + o.alive + (o.total ? ' / ' + o.total : '');
         if (label !== this._battleAliveCache) {
           this._battleAliveCache = label;

@@ -6,7 +6,7 @@
 它是为「**每天和小朋友一起加 1~2 个新关卡**」设计的：
 所有关卡都在一张**开放式地图（方块小镇）**上，加一个新关卡只要复制一个文件夹 + 改一行清单。
 
-**当前版本 v2.3.0** · 小镇广场 + 4 个关卡 · 谜语 65 道 / 常识 38 道 · 纯离线。
+**当前版本 v2.4.0** · 小镇广场 + 5 个关卡 · 谜语 65 道 / 常识 38 道 · 纯离线。
 
 > 想加关卡 / 改代码？先看 **`AGENTS.md`**（项目结构 + 关卡 API 速查 + 验证流程 + 多 Agent 协作）。
 > 想和小朋友一起口述设计新关卡？看 **`docs/工作流程.md`**（口述 → 设计卡 → 开发 → 试玩验收）
@@ -163,13 +163,14 @@ mycraft-bestxiao/
 │       ├── riddle-forest/  第 1 关 · 谜语森林
 │       ├── chest-valley/   第 2 关 · 宝箱山谷
 │       ├── hanzi-classroom/第 3 关 · 汉字教室
-│       └── arena-battle/   第 4 关 · 圆形擂台
+│       ├── arena-battle/   第 4 关 · 圆形擂台
+│       └── desert-escape/  第 5 关 · 沙漠逃亡（props.js + level.js 两个文件）
 ├── levels/             ★关卡设计卡★（给小朋友口述用的，不是代码；见 docs/工作流程.md）
 ├── transcripts/        小朋友口述的转写稿（只增不改，见 docs/工作流程.md）
 ├── docs/               协作规范（COORDINATION.md）+ 设计流程（工作流程.md / 关卡设计规范.md）+ preview/ 预览图
 ├── agents/             ★7 个角色提示词★（开新会话时贴进去，让多个 AI 并行干活）
 ├── program/            ★协作的活文件★：BOARD.md（看板）/ tasks/（任务卡）/ DECISIONS.md / CHANGELOG.md / ROADMAP.md
-├── scripts/            ★一键脚本★：serve / check / smoke / regress-all / test-level2 / test-arena / test-errors / shots
+├── scripts/            ★一键脚本★：serve / check / smoke / regress-all / test-level2 / test-arena / test-desert / test-errors / shots / shot-level
 └── work/               临时产物（截图、日志，可随时删，不进版本库）
 ```
 

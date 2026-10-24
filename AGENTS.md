@@ -6,7 +6,7 @@
 > 一句话目标：这是给「**家长 + 小朋友每天加 1~2 个关卡**」做的 3D 卡通闯关游戏，
 > 所以代码必须**极易扩展、极易验证**，宁可笨一点，也不要聪明。
 
-当前版本 **v2.3.0** · 纯静态（双击 `index.html` 就能玩）· 1 个小镇广场 + 4 个关卡 ·
+当前版本 **v2.4.0** · 纯静态（双击 `index.html` 就能玩）· 1 个小镇广场 + 5 个关卡 ·
 2 个题库大类（谜语 65 条 / 常识 38 条）
 
 ---
@@ -123,7 +123,8 @@ src/
     ├── riddle-forest/  第 1 关 · 谜语森林（问答类示范）
     ├── chest-valley/   第 2 关 · 宝箱山谷（收集 + 答题 + 锻造，noGuide 示范）
     ├── hanzi-classroom/第 3 关 · 汉字教室（学习系统示范）
-    └── arena-battle/   第 4 关 · 圆形擂台（缩圈 + 人机混战，战斗类示范）
+    ├── arena-battle/   第 4 关 · 圆形擂台（缩圈 + 人机混战，战斗类示范）
+    └── desert-escape/  第 5 关 · 沙漠逃亡（骑马 + 2 分钟限时；props.js 放关卡私货）
 ```
 
 ### 各层职责一句话
@@ -238,6 +239,7 @@ todo → claimed → doing → review → qa → done        （旁支：blocked
 - [ ] 老关卡没被搞坏：`zsh scripts/regress-all.sh` 四关全过
 - [ ] 改动只落在自己名下的文件里（越界 = 退回）
 - [ ] 文档同步：`program/CHANGELOG.md` +（改结构时）`AGENTS.md` / `README.md`
+- [ ] **提交 + 打 tag**：`git commit` + `git tag -a v<x.y.z>`，版本号三处一致（见 11.1.1）
 
 ### 3.9 和「关卡设计卡」系统怎么接（★必读★）
 
@@ -691,11 +693,34 @@ zsh scripts/test-arena.sh       # 3) 第 4 关专项（血量 / 弹开 / 缩圈 
 | `scripts/smoke.sh` | 冒烟：开页面 → 开始游戏 → 逐关进一遍，看有没有报错 |
 | `scripts/test-level2.sh` | 第 1/2 关专项：**不显示头顶箭头**、宝箱先答题、答错不开箱、题目不重复 |
 | `scripts/test-arena.sh` | 第 4 关专项（见上） |
+| `scripts/test-desert.sh` | 第 5 关专项：骑马 / 冲刺 / 箭头只给大概方向 / 龙卷风卷下马 / 仙人掌 / 小蛇 / 马随机生成 / 超时自动回城 / 绿洲通关 |
 | `scripts/test-errors.sh` | 跑五张地图 + 开面板，收集 `console.error` / 未捕获异常 |
 | `scripts/shots.sh` | 重拍 `docs/preview/*.png` 预览图 |
+| `scripts/shot-level.sh <id>` | 给**任意一关**拍一张预览图：`zsh scripts/with-server.sh zsh scripts/shot-level.sh desert-escape` |
+| `scripts/with-server.sh <命令>` | 临时起一个本地服务器，跑完自动关掉（脚本都要它才能跑） |
 
 这些脚本用 `playwright-cli` 驱动本机 Chrome，需要能弹出浏览器窗口。
 截图和日志写在 `work/`（不进版本库）。
+
+### 11.1.1 测试通过就提交 + 打版本号（★用户定的规则，必做★）
+
+**测试全绿之后必须提交一次本地 git，并给这个版本打一个 tag。** 没验证过就提交 = 把坏版本钉进历史。
+
+```bash
+cd /Users/xiao/workspace/mycraft-bestxiao
+zsh scripts/check.sh                    # 1) 先跑绿
+zsh scripts/regress-all.sh              # 2) 老关卡没被搞坏（新关再加自己的专项脚本）
+git add -A
+git commit -m "feat(lv5): 第 5 关 · 沙漠逃亡"
+git tag -a v2.4.0 -m "v2.4.0 · 第 5 关沙漠逃亡"
+```
+
+- 一个「对小朋友有影响」的改动 = **一笔提交 + 一个 tag**。
+- 版本号必须**三处一致**：`src/engine/namespace.js` 的 `Game.version`、
+  `program/CHANGELOG.md` 的标题、git tag（`v<主>.<次>.<修>`）。
+- 新关卡 / 新玩法 = 次版本号 +1；只修 bug = 修号 +1。
+- **只提交本地，不要 `git push`**（除非用户明确说要推）。
+- 提交信息前缀：`feat:` 新玩法 / `fix:` 修 bug / `docs:` 只改文档 / `chore:` 脚本与结构。
 
 > ⚠️ **浏览器窗口在后台时 rAF 会被节流**：`sleep 20` 秒游戏里可能只走了 1 秒。
 > 测「时间相关」的玩法（缩圈、加时、AI 打斗）要用页面内**手动步进**：

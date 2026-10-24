@@ -10,5 +10,6 @@ work/
 *.swp
 
 # Playwright 产物
+.playwright-cli/
 playwright-report/
 test-results/
