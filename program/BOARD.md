@@ -4,7 +4,7 @@
 > 规则见 `AGENTS.md` 第 3 节；任务卡在 `program/tasks/`。
 > 看板状态只有协调官（C0）能改；执行者只改自己那张卡的 `claimed` / `doing` / `review`。
 
-**更新时间**：2026-10-24 · **协调官**：C0（待指派）
+**更新时间**：2026-10-24（v2.7.0 第 7 关）· **协调官**：C0（待指派）
 
 ---
 
@@ -37,6 +37,7 @@
 
 | 卡号 | 标题 | 角色 | 完成时间 | 证据 |
 | --- | --- | --- | --- | --- |
+| TC-0008 | 第 7 关 · 石头迷宫（随机关卡 + 不能跳跃 + 打怪掉装备） | C3 关卡开发 + C2 引擎（`noJump`）→ 等 C5 试玩 | 2026-10-24 | `zsh scripts/test-maze.sh`（0/A~O 全绿）+ `check.sh`（47 个文件）+ `regress-all.sh` + `test-paint.sh` + `test-desert.sh` + `test-arena.sh` + `test-music.sh` + `smoke.sh` + `test-errors.sh`（errors: []）见卡内 RECEIPT |
 | TC-0007 | 第 6 关 · 踩白大草原（把绿色踩成白色） | C3 关卡开发 → 等 C5 试玩 | 2026-10-24 | `zsh scripts/test-paint.sh`（A~L 全绿）+ `check.sh`（45 个文件）+ `regress-all.sh` + `test-desert.sh` + `test-music.sh` + `smoke.sh` + `test-errors.sh`（errors: []）见卡内 RECEIPT |
 | TC-0006 | 背景音乐（每关一首 + 设置里能开 / 关） | C2 引擎架构师 | 2026-10-24 | `zsh scripts/test-music.sh`（A~J 全绿）+ `regress-all.sh` + `test-desert.sh` + `test-errors.sh`（errors: []）见卡内 RECEIPT |
 | TC-0005 | 第 5 关 · 沙漠逃亡（骑马 + 2 分钟限时逃离） | C3 关卡开发 → 等 C5 试玩 | 2026-10-24 | `zsh scripts/test-desert.sh`（14 段全绿）+ `smoke.sh`（见卡内 RECEIPT） |
@@ -49,7 +50,7 @@
 
 | 文件 | 现在谁在用 | 说明 |
 | --- | --- | --- |
-| `src/levels/index.js` | 空闲 | 加关卡清单行时登记，合并由 C0 做（TC-0007 的第 6 关 `paint-the-field` 那一行已合并） |
+| `src/levels/index.js` | 空闲 | 加关卡清单行时登记，合并由 C0 做（TC-0008 的第 7 关 `stone-maze` 那一行已合并） |
 | `src/content/banks/index.js` | 空闲 | 加题库分类时登记 |
 | `index.html` | 空闲 | 只有 C2 能动 |
 

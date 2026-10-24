@@ -44,4 +44,7 @@ shot "$OUT/preview-6-desert.png"
 ev "(()=>{Game.debug.go('paint-the-field');return 'ok'})()" >/dev/null
 sleep 2
 shot "$OUT/preview-7-paint.png"
+ev "(()=>{Game.debug.go('stone-maze');return 'ok'})()" >/dev/null
+sleep 2
+shot "$OUT/preview-8-maze.png"
 echo DONE

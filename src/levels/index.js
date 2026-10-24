@@ -23,7 +23,8 @@ window.Game.LEVELS = [
   { id: 'hanzi-classroom', files: ['levels/hanzi-classroom/level.js'] },
   { id: 'arena-battle',    files: ['levels/arena-battle/level.js'] },
   { id: 'desert-escape',   files: ['levels/desert-escape/props.js', 'levels/desert-escape/level.js'] },
-  { id: 'paint-the-field', files: ['levels/paint-the-field/props.js', 'levels/paint-the-field/level.js'] }
+  { id: 'paint-the-field', files: ['levels/paint-the-field/props.js', 'levels/paint-the-field/level.js'] },
+  { id: 'stone-maze', files: ['levels/stone-maze/props.js', 'levels/stone-maze/level.js'] }
 
   /* ↓↓↓ 以后新加的关卡写在这里，注意上一行末尾要加逗号 ↓↓↓ */
 ];

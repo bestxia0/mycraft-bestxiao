@@ -6,6 +6,82 @@
 
 ---
 
+## v2.7.0 · 2026-10-24
+
+**主题**：新增**第 7 关 · 石头迷宫**（随机关卡 + 不能跳跃 + 按 F 打怪兽掉装备），并给它配了专属背景音乐
+
+### 为什么
+- 用户转述小朋友 2026-10-24 的口述（原文见 `transcripts/2026-10-24-第七关石头迷宫-口述.md`）：
+  「设计一个比较大的迷宫， 不能跳跃，保证一定有出口， 有多套迷宫随机。
+  中中间有随机怪物出现。 需要攻击，杀死后可获得一定金币和装备。 有时间要求走到出口。
+  中间可以有金币出现。」（家长给了编号：第 7 关 迷宫）
+- 这是全游戏**第一关不能跳**、也是第一关**每次进去地图都不一样**的关卡。
+
+### 新增：第 7 关 · 石头迷宫（`src/levels/stone-maze/`）
+- **一座比较大的随机迷宫**：10 × 10 个迷宫格 = **21 × 21 格 / 63 × 63 步**。
+  算法用深度优先（递归回溯）挖出来，是「**完美迷宫**」—— 任意两格之间都有且只有一条路，
+  所以**出口一定走得到**（脚本拿 30 颗种子验证过连通性：`reached === openCount`）；
+  之后再随机打通 25% 的死胡同（braid），走起来不至于一条道走到黑。
+- **每次进关都是一座新迷宫**：`onEnter` 抽一颗新随机种子（`mulberry32` 可复现：
+  同一颗种子 = 同一座迷宫，测试就靠这个）。出口在**东北角 / 西北角**随机一座，
+  门上有 12 步高的绿色光柱，**隔着迷宫墙也看得到出口在哪个方向**。
+- **不能跳跃**（小朋友明确要求）：引擎新增关卡字段 **`noJump: true`** ——
+  按 `空格` 不再跳（墙 3 步高，跳也翻不过去），屏幕下方的操作说明同步变成
+  「……（这一关不能跳）」。**没写 `noJump` 的关卡行为完全不变**（老关卡照样能跳，回归脚本验证过）。
+- **中间有随机怪兽和金币**：8 只方块小怪兽随机撒在离入口 ≥ 8 格的走廊里
+  （溜达 / 9 步内一眼看到就追 / 贴到 1.7 步咬一口 —— **只推人不掉血**）；
+  **按 `F` 打**（4 血），打死**必掉 3~6 🪙**，**60% 掉一件装备**
+  （普通 60% / 稀有 30% / 史诗 10%），拿越好的装备打越疼（空手 1 → 传说 4）。
+  场上 18 枚金币，**1/3 故意放在死胡同里**（愿意绕路就有奖励）。
+- **3 分钟倒计时**（一进关就开算）；时间到还没走出来 → **不弹失败面板**，
+  1.7 秒后自动回小镇重来（和第 5、6 关一个规矩），并记一次 `attempts`。
+- **不给全程答案**：前 135 秒**不给**出口箭头（迷宫要自己走才有意思），
+  **只剩最后 45 秒**箭头才出现兜底（怕小朋友绕到没脾气）；见 `program/DECISIONS.md` D-011。
+- 通关奖励 50 🪙，记「最快一次用时 / 通关次数 / 累计打怪 / 累计捡币」；再进关全部重置。
+
+### 引擎（向后兼容，只加开关）
+- `src/engine/player.js`：新增 `player.jumpEnabled`（默认 `true`），
+  键盘 `空格`、触屏「跳」按钮、起跳判定三处都加了这个开关 —— **不写就还是能跳**。
+- `src/engine/director.js`：`go()` 里按关卡字段 `noJump` 设置 `player.jumpEnabled`，
+  并同步屏幕下方那条操作说明。
+- `src/engine/ui.js`：新增 `Game.UI.hintBar(jumpEnabled)` 与两条操作说明文案。
+
+### 背景音乐：第 7 关专属曲子《石头迷宫》
+- `src/engine/music.js` 的 `TRACKS` 加一首（key = 关卡 id `stone-maze`）：
+  **124 bpm / 方波 / soft 鼓点**，小调 + 稀一点的鼓 = 神秘、绕来绕去、带一点点紧张。
+
+### 改了哪些文件
+- 新增：`src/levels/stone-maze/props.js`、`src/levels/stone-maze/level.js`、`scripts/test-maze.sh`
+- 新增文档：`levels/L07-石头迷宫.md`、`transcripts/2026-10-24-第七关石头迷宫-口述.md`、
+  `program/tasks/TC-0008-stone-maze.md`
+- 引擎：`src/engine/player.js`、`src/engine/director.js`、`src/engine/ui.js`（`noJump` 开关）、
+  `src/engine/music.js`（一首新曲子）、`src/engine/namespace.js`（版本号 2.7.0）
+- 清单：`src/levels/index.js` 加一行
+- 脚本：`scripts/smoke.sh`、`scripts/test-errors.sh`、`scripts/test-music.sh` 的关卡列表加上这一关；
+  `scripts/shots.sh` 加一张 `preview-8-maze.png`
+- 文档：本文件、`program/DECISIONS.md`（D-011）、`program/BOARD.md`、`program/ROADMAP.md`、
+  `README.md`、`AGENTS.md`、`docs/背景音乐.md`、`levels/README.md`、
+  `levels/_ideas/README.md`（顺手把「把绿色踩成白色」的漂移状态改成已落地）
+
+### 验证（全绿）
+- `zsh scripts/check.sh` → 47 个 JS 文件语法全通过。
+- `zsh scripts/with-server.sh zsh scripts/test-maze.sh` → 0/A~O 全绿
+  （登记 / 21 × 21 + 3 分钟 + 只有 1 座出口亮 / **30 颗种子都连通 + 出口走得到 + 外圈不漏** /
+  同种子同迷宫 / 每次进关换新迷宫 / **不能跳跃**（迷宫跳不起来、广场照样跳、底部说明跟着变、
+  E2 朝墙走 2 秒只挪了 1.2 步且 y 还是 0 —— 既翻不过去也爬不上去）/
+  一只 4 下打死 + 掉 3~6 金币 / 3 座迷宫打 24 只掉 11~14 件装备（设计值 60%，小样本会浮动）+
+  拿史诗装备一下一只 /
+  走过去自动捡金币 / 怪兽会追人会咬人（只推人不掉血、不失败）/ **剩 45 秒才给箭头** /
+  藏起来的出口走上去不算通关 / 走到出口通关 + 50 金币 + 存档 / 时间到自动回小镇 + attempts+1 /
+  再进关金币怪兽都回来 / 时间预算）。
+- `zsh scripts/with-server.sh zsh scripts/regress-all.sh` → 老 4 关全流程通过
+  （回广场时门列表 `stone-maze` 是 `locked`，解锁链正常）。
+- `zsh scripts/with-server.sh zsh scripts/test-paint.sh`、`test-desert.sh`、`test-arena.sh` → 各关专项全绿
+  （跳跃开关与底部说明的引擎改动没有影响老关卡）。
+- `zsh scripts/with-server.sh zsh scripts/test-music.sh` → 每关都有曲子，第 7 关是《石头迷宫 124bpm/square/soft ✓》。
+- `zsh scripts/with-server.sh zsh scripts/smoke.sh` → 广场 + 7 关逐关进出，任务条正常。
+- `zsh scripts/with-server.sh zsh scripts/test-errors.sh` → `errors: []`、`warns: []`。
+
 ## v2.6.0 · 2026-10-24
 
 **主题**：新增**第 6 关 · 踩白大草原**（把绿色踩成白色），并给它配了专属背景音乐

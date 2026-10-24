@@ -67,6 +67,7 @@
         battleAlive: $('battleAlive'),
         zoneTag: $('zoneTag'),
         prompt: $('prompt'),
+        hintBar: $('hintBar'),
         toasts: $('toasts'),
         modalRoot: $('modalRoot')
       };
@@ -173,6 +174,16 @@
       if (!text) { el.classList.add('hidden'); return; }
       el.classList.remove('hidden');
       el.innerHTML = text.replace(/\bE\b/, '<b>E</b>');
+    },
+
+    /* 屏幕最下面那条操作说明（关卡写了 noJump:true 就换成「这一关不能跳」那条） */
+    HINT_JUMP: 'WASD / 方向键 移动 · 空格 跳跃 · E 交互 · F 挥武器 · 鼠标拖拽转视角 · Esc 暂停',
+    HINT_NO_JUMP: 'WASD / 方向键 移动 · E 交互 · F 挥武器 · 鼠标拖拽转视角 · Esc 暂停（这一关不能跳）',
+    hintBar(jumpEnabled) {
+      const el = this.D.hintBar;
+      if (!el) return;
+      const text = jumpEnabled === false ? this.HINT_NO_JUMP : this.HINT_JUMP;
+      if (el.textContent !== text) el.textContent = text;
     },
 
     /* ---------------- 提示气泡 ---------------- */

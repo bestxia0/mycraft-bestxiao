@@ -16,6 +16,7 @@
 | [L04](L04-圆形擂台.md) | 圆形擂台 | `arena-battle` | 40 | 缩圈混战，把 6 个对手打下擂台 | 按 `F` 打人（用第 2 关炼的武器） | 圆形擂台（138 bpm） | 可玩 | `scripts/test-arena.sh` |
 | [L05](L05-沙漠逃亡.md) | 沙漠逃亡 | `desert-escape` | 50 | 骑马 2 分钟逃出沙漠，超时自动回小镇重来 | 骑马 / 头上的箭头只给**大概**方向 | 沙漠逃亡（152 bpm） | 可玩 | `scripts/test-desert.sh` |
 | [L06](L06-踩白大草原.md) | 踩白大草原 | `paint-the-field` | 60 | 6 分钟把 900 块绿地板全踩成白色，再找出那 1 座正确的传送门 | 踩过的地块会变状态（绿 → 白）/ 骑马踩的范围更大 | 踩白大草原（126 bpm） | 可玩 | `scripts/test-paint.sh` |
+| [L07](L07-石头迷宫.md) | 石头迷宫 | `stone-maze` | 70 | 3 分钟走出一座**每次都不一样**的大迷宫（不能跳跃），路上打怪兽掉金币和装备 | 不能跳（`noJump`）/ 随机生成的迷宫 / 按 F 打怪掉装备 | 石头迷宫（124 bpm） | 可玩 | `scripts/test-maze.sh` |
 
 > **背景音乐（v2.5.0 起）**：每关一首，曲子 `id` = 关卡 `id`，切关卡自动换曲；
 > 没配曲子的关卡放 `default`。曲库、开关、怎么改曲子都在 `docs/背景音乐.md`。
@@ -51,13 +52,14 @@
 | L04 圆形擂台 | 实时战斗（缩圈 + 击退） | 独一份，全游戏唯一需要打人的关卡 |
 | L05 沙漠逃亡 | 骑马 + 限时逃离 | 独一份，全游戏唯一有时间压力 + 载具的关卡 |
 | L06 踩白大草原 | 地块状态翻转（踩绿变白）+ 限时 + 找门 | 独一份，全游戏唯一「踩地面」当核心动作的关卡（也骑马，但骑马只是加快踩白，不算重复） |
+| L07 石头迷宫 | 随机生成的迷宫 + 限时寻路 + 打怪掉装备 | 独一份，全游戏唯一「迷宫寻路」当核心动作的关卡；也是唯一**不能跳跃**的关卡（`noJump`） |
 
 > 判断标准：**核心动词不一样就不算重复**（猜 / 找 / 学 / 打 / 逃）。
 > 共用引擎能力（答题弹窗、传送门、粒子）不算重复。
 
 ## 五、进度
 
-- 游戏里现有：**1 个广场 + 6 个关卡**，全部 `可玩`（能进去、能通关、脚本全绿）。
+- 游戏里现有：**1 个广场 + 7 个关卡**，全部 `可玩`（能进去、能通关、脚本全绿）。
 - **已验收（小朋友亲口说好玩 / 独立通关）：0 关** —— 这是唯一还缺的一步，见 `docs/工作流程.md` 步骤 7。
 - 未实现的点子：3 个（找风扇 / 装空调 / 第四关待定，都在 `_ideas/`）。
 - 点子池（想加新关卡从这里挑）：`program/ROADMAP.md` 第二节。
@@ -70,8 +72,9 @@ zsh scripts/check.sh                                   # 所有 JS 语法
 zsh scripts/with-server.sh zsh scripts/regress-all.sh   # 老 4 关全流程
 zsh scripts/with-server.sh zsh scripts/test-desert.sh   # 第 5 关专项
 zsh scripts/with-server.sh zsh scripts/test-paint.sh    # 第 6 关专项（踩白 / 骑马 / 找门 / 超时 / 重玩）
+zsh scripts/with-server.sh zsh scripts/test-maze.sh     # 第 7 关专项（连通性 / 不能跳跃 / 打怪掉装备 / 超时 / 通关）
 zsh scripts/with-server.sh zsh scripts/test-music.sh    # 背景音乐专项（每关有曲子 / 开关 / 存档）
-zsh scripts/with-server.sh zsh scripts/smoke.sh         # 广场 + 6 关都能进、零报错
+zsh scripts/with-server.sh zsh scripts/smoke.sh         # 广场 + 7 关都能进、零报错
 ```
 
 > 测试全绿之后要**提交 + 打 tag**（用户定的规则，见 `AGENTS.md` 第 11.1.1 节）。

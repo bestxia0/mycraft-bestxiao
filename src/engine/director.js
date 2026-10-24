@@ -209,6 +209,10 @@
       }
       this.player.teleport(spawn.x, spawn.z, spawn.y || 0, def.camera);
       this.player.clearQueue();
+      /* 关卡写了 noJump:true 就不能跳（第 7 关迷宫：跳也过不去墙，干脆关掉）。
+         没写的关卡照样能跳，老关卡行为不变。 */
+      this.player.jumpEnabled = !def.noJump;
+      Game.UI.hintBar(this.player.jumpEnabled);
 
       this.env.setTheme(def.theme);
       this.state = 'play';

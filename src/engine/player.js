@@ -46,6 +46,7 @@
         attackQueued: false
       };
       this.inputEnabled = true;     // 弹窗打开时置 false，玩家就站着不动
+      this.jumpEnabled = true;      // 关卡可以关掉跳跃（写 noJump:true，第 7 关迷宫用）
       this.lockRotation = false;    // 开场镜头自动转圈时锁住手动转视角
       this.stunT = 0;               // 被击飞的僵直时间（期间方向键失效）
       this.touchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
@@ -68,7 +69,7 @@
         }
         input.keys[e.code] = true;
         if (!this.inputEnabled) return;
-        if (e.code === 'Space') input.jumpQueued = true;
+        if (e.code === 'Space' && this.jumpEnabled) input.jumpQueued = true;
         if (e.code === 'KeyE' || e.code === 'Enter') input.actQueued = true;
         if (e.code === 'KeyF') input.attackQueued = true;      // 擂台关：打！
       });
@@ -165,7 +166,7 @@
 
       $('btnJump').addEventListener('pointerdown', (e) => {
         e.preventDefault();
-        if (this.inputEnabled) this.input.jumpQueued = true;
+        if (this.inputEnabled && this.jumpEnabled) this.input.jumpQueued = true;
       });
       $('btnAct').addEventListener('pointerdown', (e) => {
         e.preventDefault();
@@ -208,7 +209,7 @@
       const wishX = fx * mz + rx * mx;
       const wishZ = fz * mz + rz * mx;
 
-      const jump = this.inputEnabled && !stunned && input.jumpQueued;
+      const jump = this.inputEnabled && !stunned && this.jumpEnabled && input.jumpQueued;
       input.jumpQueued = false;
 
       Game.Physics.step(body, dt, {
