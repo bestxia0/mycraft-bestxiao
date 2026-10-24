@@ -13,12 +13,30 @@
      ctx.player.swing()             挥一下武器（动画）
      ctx.player.knockback(dx,dz,power,up,stun)  把玩家击飞一段
      ctx.player.stunT               被击飞的僵直剩余秒数
+     ctx.player.small               现在是不是小人（缩小能力）
+     ctx.player.setSmall(true/false) 变小 / 变回来（第 8 关：钻进小屋要先变小）
+
+   关卡能开关的两件事（写进关卡定义里）：
+     noJump: true   这一关不能跳（第 7 关迷宫）
+     shrink: true   这一关能用「变小」能力（按 R，第 8 关风扇小屋）
    =================================================================== */
 (function () {
   const Game = window.Game;
 
   const MIN_PITCH = -0.15, MAX_PITCH = 1.15;
   const MIN_DIST = 4.5, MAX_DIST = 14;
+
+  /* ---------------- 缩小能力（关卡写 shrink:true 才有） ----------------
+     大个子 1.8 步高 → 小人 0.61 步高，镜头跟着拉近。
+     变小以后碰撞盒也跟着变小，所以能钻过只有 1.2 步高的门洞。 */
+  const DIST_BIG = 7.4;              // 大个子时的镜头距离（变回来还原成这个）
+  const SMALL_SCALE = 0.34;          // 模型缩到 34%（1.8 → 0.61 步）
+  const SMALL_H = 0.6;               // 缩小后的碰撞盒高
+  const SMALL_R = 0.16;              // 缩小后的碰撞盒半径
+  const SMALL_SPEED = 3.4;           // 缩小后走得慢一点（小人腿短）
+  const SMALL_JUMP_V = 6.6;          // 缩小后跳的初速
+  const SMALL_DIST = 3.0;            // 缩小后镜头自动拉近
+  const SMALL_MIN_DIST = 1.6, SMALL_MAX_DIST = 9;
 
   Game.Player = class Player {
     constructor(opts) {
@@ -43,10 +61,16 @@
         touchMove: { x: 0, y: 0 },
         jumpQueued: false,
         actQueued: false,
-        attackQueued: false
+        attackQueued: false,
+        shrinkQueued: false
       };
       this.inputEnabled = true;     // 弹窗打开时置 false，玩家就站着不动
       this.jumpEnabled = true;      // 关卡可以关掉跳跃（写 noJump:true，第 7 关迷宫用）
+      this.shrinkEnabled = false;   // 关卡可以打开缩小能力（写 shrink:true，第 8 关风扇小屋用）
+      this.small = false;           // 现在是不是小人
+      this.baseH = Game.CONST.ACTOR_HEIGHT;   // 大个子的碰撞盒高（变回来时用）
+      this.baseR = Game.CONST.ACTOR_RADIUS;
+      this._distBig = DIST_BIG;     // 变小之前的镜头距离（变回来还原）
       this.lockRotation = false;    // 开场镜头自动转圈时锁住手动转视角
       this.stunT = 0;               // 被击飞的僵直时间（期间方向键失效）
       this.touchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
@@ -72,6 +96,7 @@
         if (e.code === 'Space' && this.jumpEnabled) input.jumpQueued = true;
         if (e.code === 'KeyE' || e.code === 'Enter') input.actQueued = true;
         if (e.code === 'KeyF') input.attackQueued = true;      // 擂台关：打！
+        if (e.code === 'KeyR' && this.shrinkEnabled) input.shrinkQueued = true;   // 第 8 关：变小 / 变回来
       });
       window.addEventListener('keyup', (e) => { input.keys[e.code] = false; });
       window.addEventListener('blur', () => { input.keys = {}; });
@@ -101,7 +126,7 @@
         }
       });
       window.addEventListener('wheel', (e) => {
-        cam.dist = Game.clamp(cam.dist + Math.sign(e.deltaY) * 0.6, MIN_DIST, MAX_DIST);
+        cam.dist = Game.clamp(cam.dist + Math.sign(e.deltaY) * 0.6, this.camMin(), this.camMax());
       }, { passive: true });
     }
 
@@ -179,6 +204,14 @@
           if (this.inputEnabled) this.input.attackQueued = true;
         });
       }
+      /* 触屏上的「小」按钮：只有能用缩小能力的关卡才显示（第 8 关风扇小屋） */
+      const btnSmall = $('btnSmall');
+      if (btnSmall) {
+        btnSmall.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          if (this.inputEnabled && this.shrinkEnabled) this.input.shrinkQueued = true;
+        });
+      }
       const hint = $('hintBar');
       if (hint) hint.style.display = 'none';    // 手机上按钮已经很清楚，不占地方
     }
@@ -192,6 +225,12 @@
 
       if (this.stunT > 0) this.stunT = Math.max(0, this.stunT - dt);
       const stunned = this.stunT > 0;         // 被击飞中：方向键管不了
+
+      /* 按了 R（或点了触屏上的「小」）：变小 / 变回来 */
+      if (input.shrinkQueued) {
+        input.shrinkQueued = false;
+        if (this.inputEnabled) this.toggleShrink();
+      }
 
       let mx = 0, mz = 0;
       if (this.inputEnabled && !stunned) {
@@ -221,7 +260,8 @@
         floor: world.floor || 0,
         floorAt: world.floorAt || null,
         holdMomentum: stunned,
-        speed: world.speed
+        speed: world.speed === undefined ? (this.small ? SMALL_SPEED : undefined) : world.speed,
+        jumpV: world.jumpV === undefined ? (this.small ? SMALL_JUMP_V : undefined) : world.jumpV
       });
       if (body.jumped) Game.Sfx.jump();
 
@@ -238,24 +278,26 @@
       const cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
       const tx = p.x + Math.sin(cam.yaw) * cp * cam.dist;
       const tz = p.z + Math.cos(cam.yaw) * cp * cam.dist;
-      const ty = Math.max(p.y + 1.5 + sp * cam.dist, 1.2);
+      const eye = p.y + this.eyeHeight();
+      const ty = Math.max(eye + 0.15 + sp * cam.dist, 1.2);
       const k = Math.min(1, dt * 9);
       camera.position.x = Game.lerp(camera.position.x, tx, k);
       camera.position.y = Game.lerp(camera.position.y, ty, k);
       camera.position.z = Game.lerp(camera.position.z, tz, k);
-      camera.lookAt(p.x, p.y + 1.35, p.z);
+      camera.lookAt(p.x, eye, p.z);
     }
 
     /* 立刻把相机贴到目标位置（传送后不要拉丝） */
     snapCamera() {
       const cam = this.cam, p = this.body.pos, camera = this.camera;
       const cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+      const eye = p.y + this.eyeHeight();
       camera.position.set(
         p.x + Math.sin(cam.yaw) * cp * cam.dist,
-        Math.max(p.y + 1.5 + sp * cam.dist, 1.2),
+        Math.max(eye + 0.15 + sp * cam.dist, 1.2),
         p.z + Math.cos(cam.yaw) * cp * cam.dist
       );
-      camera.lookAt(p.x, p.y + 1.35, p.z);
+      camera.lookAt(p.x, eye, p.z);
     }
 
     /* ---------------- 给关卡用的工具 ---------------- */
@@ -273,11 +315,55 @@
       if (!o) return this;
       if (o.yaw !== undefined) this.cam.yaw = o.yaw;
       if (o.pitch !== undefined) this.cam.pitch = Game.clamp(o.pitch, MIN_PITCH, MAX_PITCH);
-      if (o.dist !== undefined) this.cam.dist = Game.clamp(o.dist, MIN_DIST, MAX_DIST);
+      if (o.dist !== undefined) this.cam.dist = Game.clamp(o.dist, this.camMin(), this.camMax());
       return this;
     }
 
     setTier(tier) { this.model.setTier(tier); return this; }
+
+    /* ---------------- 缩小能力（第 8 关风扇小屋） ---------------- */
+    /* 镜头看着哪儿（变小以后要跟着降低，不然镜头对着空气） */
+    eyeHeight() { return this.small ? 0.5 : 1.35; }
+    /* 镜头能拉多近 / 多远（变小以后能贴得更近） */
+    camMin() { return this.small ? SMALL_MIN_DIST : MIN_DIST; }
+    camMax() { return this.small ? SMALL_MAX_DIST : MAX_DIST; }
+
+    /* 关卡进场时调用：开 / 关这一关能不能缩小（顺便把按钮和小人状态收拾干净） */
+    setShrinkEnabled(v) {
+      this.shrinkEnabled = !!v;
+      const btn = document.getElementById('btnSmall');
+      if (btn) btn.classList.toggle('hidden', !this.shrinkEnabled);
+      this.setSmall(false);          // 每次进关卡都从大个子开始（变小要自己按）
+      return this;
+    }
+
+    /* 变小 / 变回来。force 不传就是来回切。
+       返回「这次真的变了吗」，方便测试和提示。 */
+    toggleShrink(force) {
+      if (!this.shrinkEnabled) return false;
+      const want = force === undefined ? !this.small : !!force;
+      if (want === this.small) return false;
+      this.small = want;
+      const b = this.body;
+      b.h = want ? SMALL_H : this.baseH;
+      b.hx = b.hz = want ? SMALL_R : this.baseR;
+      if (this.model && this.model.group) this.model.group.scale.setScalar(want ? SMALL_SCALE : 1);
+      if (want) { this._distBig = this.cam.dist; }
+      this.cam.dist = Game.clamp(want ? SMALL_DIST : this._distBig, this.camMin(), this.camMax());
+      Game.Sfx.shrink();
+      return true;
+    }
+
+    /* 直接设成某个大小（关卡切走 / 重置时用） */
+    setSmall(v) {
+      if (this.small === !!v) return this;
+      /* 临时打开开关走一遍 toggleShrink，把身高/镜头/模型都摆正 */
+      const had = this.shrinkEnabled;
+      this.shrinkEnabled = true;
+      this.toggleShrink(v);
+      this.shrinkEnabled = had;
+      return this;
+    }
 
     /* ---------------- 战斗（擂台关用） ---------------- */
     /* 这一帧按了「攻击」吗？（取走就清掉，一个按键只打一下） */
@@ -322,6 +408,7 @@
       this.input.actQueued = false;
       this.input.jumpQueued = false;
       this.input.attackQueued = false;
+      this.input.shrinkQueued = false;
     }
   };
 })();

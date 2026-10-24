@@ -7,7 +7,7 @@
 (function () {
   const Game = (window.Game = window.Game || {});
 
-  Game.version = '2.7.0';
+  Game.version = '2.8.0';
 
   /* ---------------- 数学 ---------------- */
   const M = (Game.M = {

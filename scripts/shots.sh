@@ -1,6 +1,6 @@
 #!/bin/zsh
 # 重拍交付用预览图（docs/preview/*.png）：
-#   开始界面 / 广场 / 谜语 / 宝箱 / 汉字 / 擂台 / 沙漠 / 踩白大草原
+#   开始界面 / 广场 / 谜语 / 宝箱 / 汉字 / 擂台 / 沙漠 / 踩白大草原 / 石头迷宫 / 风扇小屋
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -47,4 +47,8 @@ shot "$OUT/preview-7-paint.png"
 ev "(()=>{Game.debug.go('stone-maze');return 'ok'})()" >/dev/null
 sleep 2
 shot "$OUT/preview-8-maze.png"
+
+ev "(()=>{Game.debug.go('fan-cottage');return 'ok'})()" >/dev/null
+sleep 2
+shot "$OUT/preview-9-cottage.png"
 echo DONE

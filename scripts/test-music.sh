@@ -30,9 +30,9 @@ sleep 1.5
 echo "  $(ev "JSON.stringify({该放哪首:Game.Music.current,在响没:Game.Music.playing,暂停没:Game.Music.paused,调度器活着:!!Game.Music._timer,音量:Game.Music.volume,ctx状态:Game.Music.ctx&&Game.Music.ctx.state})")"
 
 echo ""
-echo "===== D. 切关卡 = 换曲子（广场 + 6 关逐个走一遍） ====="
+echo "===== D. 切关卡 = 换曲子（广场 + 7 关逐个走一遍） ====="
 ev "(()=>{Game.debug.unlockAll();return 'ok'})()" >/dev/null
-for L in riddle-forest chest-valley hanzi-classroom arena-battle desert-escape paint-the-field stone-maze hub-square; do
+for L in riddle-forest chest-valley hanzi-classroom arena-battle desert-escape paint-the-field stone-maze fan-cottage hub-square; do
   r=$(ev "(()=>{Game.debug.go('$L');return JSON.stringify({id:Game.Music.current,在响:Game.Music.playing,正好是这一关的曲子:Game.Music.current==='$L'})})()")
   echo "  进 $L → $r"
   sleep 0.7

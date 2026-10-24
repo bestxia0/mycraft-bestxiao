@@ -207,12 +207,15 @@
       if (opts.from && typeof def.spawnFor === 'function') {
         spawn = def.spawnFor(opts.from, this.save) || spawn;
       }
+      /* 先复位大小（上一关可能是小人），再摆镜头、摆人 */
+      this.player.setShrinkEnabled(!!def.shrink);
       this.player.teleport(spawn.x, spawn.z, spawn.y || 0, def.camera);
       this.player.clearQueue();
-      /* 关卡写了 noJump:true 就不能跳（第 7 关迷宫：跳也过不去墙，干脆关掉）。
-         没写的关卡照样能跳，老关卡行为不变。 */
+      /* 关卡写了 noJump:true 就不能跳（第 7 关迷宫：跳也过不去墙，干脆关掉）；
+         写了 shrink:true 才能用「变小」能力（第 8 关风扇小屋：钻进小屋要变小）。
+         没写的关卡照样能跳、也没有缩小能力，老关卡行为不变。 */
       this.player.jumpEnabled = !def.noJump;
-      Game.UI.hintBar(this.player.jumpEnabled);
+      Game.UI.hintBar({ jump: this.player.jumpEnabled, shrink: !!def.shrink });
 
       this.env.setTheme(def.theme);
       this.state = 'play';

@@ -12,6 +12,7 @@
      · 西边「小迷宫」：木头栅栏围的一圈一圈的迷宫，最里面藏着一个宝箱（+25 金币）
      · 南边「许愿池」：小池塘，投 10 枚金币许一个愿 💰
      · 南边「小花园」：一大片花圃，可以带小羊来玩 🌷
+     · 东边「工具台」：能借到一个充电器 🔌（第 8 关风扇小屋要给风扇通电用）
      · 全镇散落着 8 枚闪光金币，每进一次小镇都会重新出现 🪙
 
    ★ 想挪动这些地方：改下面那几个常量（坐标表）就行，不用碰玩法代码 ★
@@ -34,6 +35,7 @@
   const MAZE_PRIZE = { x: -41.5, z: -6 };          // 迷宫正中心的宝箱
   const POOL = { x: -26, z: 38, r: 5 };            // 南边「许愿池」
   const GARDEN = { x: 26, z: 38 };                 // 南边「小花园」
+  const TOOLBOX = { x: 15, z: -8 };                // 东边「工具台」：借充电器（第 8 关用）
   const ELDER = { x: -11, z: 15 };                 // 村长爷爷
   const SIGN = { x: 11, z: 15 };                   // 玩法说明木牌
   const COIN_SPOTS = [                             // 8 枚闪光金币
@@ -159,6 +161,9 @@
       buildWishPool(ctx, h);
       buildGarden(ctx, h);
 
+      /* ---------------- 东边「工具台」：借充电器（第 8 关风扇小屋要用） ---------------- */
+      buildToolBench(ctx, h);
+
       /* ---------------- 8 枚闪光金币 ---------------- */
       COIN_SPOTS.forEach(function (p, i) { buildCoin(ctx, p, i); });
 
@@ -216,6 +221,14 @@
 
     objective(ctx) {
       const rt = ctx.data || { portals: [], coinCount: 0 };
+      /* 第 8 关：风扇已经装进小屋、却还缺充电器？任务条直接把小朋友领到工具台 */
+      const gsave = ctx.director.save;
+      if (!gsave.flag('hasCharger') && gsave.level('fan-cottage').flag('fanMounted')) {
+        return {
+          text: '🔌 风扇小屋还缺一个充电器，广场东边的工具台上就能借到！',
+          target: { x: TOOLBOX.x, z: TOOLBOX.z }
+        };
+      }
       const target = Game.Levels.currentTarget(ctx.director.save);
       const total = Game.Levels.playable().length;
       const done = Game.Levels.doneCount(ctx.director.save);
@@ -410,6 +423,63 @@
   }
 
   /* ================= 闪光金币 ================= */
+  /* ================= 东边：工具台（借充电器，第 8 关风扇小屋要用） ================= */
+  function buildToolBench(ctx, h) {
+    const B = TOOLBOX;
+    const woodMat = new THREE.MeshLambertMaterial({ map: Game.Textures.wood(), color: 0xd8b98a });
+
+    /* 一张工作台：台面 + 台板（都能走上去，不会绊住小朋友） */
+    h.addBox(B.x, 0, B.z, 3.2, 0.85, 1.8, woodMat);
+    h.addBox(B.x, 0.85, B.z, 3.4, 0.12, 2.0, woodMat);
+
+    /* 台面上摆着的充电器（拿走以后就藏起来） */
+    const charger = Game.makeCharger({ x: B.x, y: 0.97, z: B.z });
+    ctx.scene.add(charger.group);
+    ctx.entity({
+      animate: function (dt, time) {
+        charger.label.position.y = 1.05 + Math.sin(time * 2.4) * 0.1;
+      }
+    });
+
+    /* 牌子：远远就能看见「这里能借充电器」 */
+    const sign = Game.makeLabelSprite('🔌 工具台 · 借充电器', 0.7, {
+      fontSize: 44, bg: 'rgba(255,236,160,.96)'
+    });
+    sign.position.set(B.x, 2.9, B.z);
+    ctx.scene.add(sign);
+    h.makeSign('🔌 工具台', B.x, 2.0, B.z + 2.8);
+    h.block(B.x, B.z, 4.5);
+
+    const taken = ctx.director.save.flag('hasCharger');
+    charger.group.visible = !taken;
+
+    ctx.interact({
+      kind: 'tool-bench',
+      label: '按 E 借一个充电器 🔌',
+      pos: { x: B.x, z: B.z },
+      radius: 3.0,
+      onUse: function () { borrowCharger(ctx, charger); }
+    });
+  }
+
+  /* 借充电器：写进「全局开关」，回风扇小屋就能插上电 */
+  function borrowCharger(ctx, charger) {
+    const save = ctx.director.save;
+    if (save.flag('hasCharger')) {
+      Game.Sfx.click();
+      ctx.toast('🔌 充电器你已经借走啦，回去把它插上吧！', 'gold', 3000, 'charger');
+      return;
+    }
+    save.setFlag('hasCharger', true);
+    charger.group.visible = false;
+    charger.taken = true;
+    Game.Sfx.chest();
+    ctx.particles.burst(new THREE.Vector3(TOOLBOX.x, 1.2, TOOLBOX.z), 0x9fd8ff, 20, 1.2);
+    ctx.toast('🔌 借到充电器啦！回去装到风扇上就能通电 ⚡', 'gold', 4200, 'charger');
+    ctx.director._refreshObjective();
+  }
+
+  /* ================= 闪光金币 ================= */
   function buildCoin(ctx, p, i) {
     const rt = ctx.data;
     const group = new THREE.Group();
@@ -532,6 +602,9 @@
     lines.push('小镇变大了好多，够你玩很久啦：东边可以玩「跳跳乐」往上跳，');
     lines.push('西边「小迷宫」里面藏着一个宝箱，南边「许愿池」能许愿，');
     lines.push('南边还有一片「小花园」，地上散着 8 枚金币，快去找一找吧！');
+    if (!save.flag('hasCharger') && save.level('fan-cottage').flag('fanMounted')) {
+      lines.push('风扇小屋的电还没通上吧？东边工具台上有个充电器，借走就能用啦！');
+    }
     if (rt.coinCount) lines.push('你已经捡到 ' + rt.coinCount + ' 枚金币啦，加油！');
     return lines;
   }
@@ -555,6 +628,7 @@
         '<li>🌀 西边 <b>小迷宫</b>：栅栏围了两圈，走到最里面开宝箱 🎁（+25 🪙）</li>' +
         '<li>💰 南边 <b>许愿池</b>：站到池子边按 E，投 10 枚金币许一个愿</li>' +
         '<li>🌷 南边 <b>小花园</b>：一大片花圃，小羊也会去那里散步</li>' +
+        '<li>🔌 东边 <b>工具台</b>：能借到<b>充电器</b>（第 8 关风扇小屋给风扇通电要用）</li>' +
         '<li>🪙 镇上散着 <b>8 枚金币</b>，走过去就能捡（每进小镇都会重新出现）</li>' +
         '</ul>' +
         '<h3 class="ui-sub">小镇里的关卡</h3><ul class="ui-list">' + rows + '</ul>' +

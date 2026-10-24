@@ -9,6 +9,7 @@
      Game.makePortal({ x: 0, z: -20, label: '回广场', color: 0x9b6bff })
      Game.makeSheep(x, z, 4)
      Game.makeGuideArrow()
+     Game.makeCharger({ x: 0, z: 0 })      充电器（第 8 关的任务道具）
    每个工厂都会返回一个 { group, ..., animate(dt,time) } 的小对象，
    group 要自己 scene.add(...)，animate 要交给 ctx.entity(obj) 让它每帧动起来。
    =================================================================== */
@@ -637,6 +638,38 @@
     };
     if (api.unlocked) api.setUnlocked(true, baseColor);
     return api;
+  };
+
+  /* ============================================================
+     充电器（第 8 关 · 风扇小屋的任务道具）
+     ------------------------------------------------------------
+     一个白色小方块 + 两根插脚 + 一根线，头顶挂一块牌子，方便小朋友看见。
+     广场的工具台和风扇小屋里都用它（引擎层的通用道具，哪一关都能调）。
+     ============================================================ */
+  Game.makeCharger = function (opts) {
+    opts = opts || {};
+    const group = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.42, 0.34), Game.mat(0xf7fbff));
+    body.position.y = 0.21;
+    body.castShadow = body.receiveShadow = true;
+    group.add(body);
+    [-0.12, 0.12].forEach(function (dx) {
+      const foot = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.22, 0.08), Game.mat(0xcfd6de));
+      foot.position.set(dx, 0.5, 0.04);
+      foot.castShadow = true;
+      group.add(foot);
+    });
+    const cord = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.09, 0.9), Game.mat(0x3a3f47));
+    cord.position.set(0, 0.06, -0.5);
+    group.add(cord);
+    const label = Game.makeLabelSprite(opts.label || '🔌 充电器', 0.42, {
+      fontSize: 42, bg: opts.labelBg || 'rgba(255,246,224,.94)'
+    });
+    label.position.set(0, 1.05, 0);
+    group.add(label);
+    group.position.set(opts.x || 0, opts.y || 0, opts.z || 0);
+    if (opts.rotationY) group.rotation.y = opts.rotationY;
+    return { group: group, label: label, taken: false };
   };
 
   /* ============================================================

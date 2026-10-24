@@ -16,7 +16,7 @@ ev "(()=>{Game.debug.unlockAll();return 'ok'})()" >/dev/null
 sleep 0.5
 echo "广场: $(ev "JSON.stringify(Game.debug.state())")"
 echo "门: $(ev "(()=>{const a=Game.debug.director.active;return JSON.stringify(((a.data||{}).portals||[]).map(p=>[p.levelId,p.status]))})()")"
-for L in riddle-forest chest-valley hanzi-classroom arena-battle desert-escape paint-the-field stone-maze hub-square; do
+for L in riddle-forest chest-valley hanzi-classroom arena-battle desert-escape paint-the-field stone-maze fan-cottage hub-square; do
   echo "进 $L: $(ev "(()=>{Game.debug.go('$L');return Game.debug.state().name})()")"
   sleep 1.2
   echo "   任务条: $(ev "String(Game.debug.director.objective && Game.debug.director.objective.text)")"

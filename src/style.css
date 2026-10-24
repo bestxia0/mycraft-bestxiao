@@ -214,6 +214,7 @@ html, body {
 .touch-btn.jump { right: 26px; bottom: 30px; }
 .touch-btn.act { right: 122px; bottom: 120px; background: rgba(255,212,71,.95); }
 .touch-btn.atk { right: 26px; bottom: 128px; background: rgba(255,150,150,.95); }
+.touch-btn.small { right: 122px; bottom: 30px; background: rgba(150,220,255,.95); }
 
 /* ---------------- 擂台关 HUD（倒计时 / 血条 / 对手数） ---------------- */
 .battle-hud {

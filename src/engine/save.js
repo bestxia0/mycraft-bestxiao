@@ -177,6 +177,22 @@
       return g;
     },
 
+    /* ---------------- 全局开关（跨关卡共用） ----------------
+       关卡自己的进度写在 ctx.save（按关卡分区），
+       但「和哪个关卡无关、小朋友拿到手就一直有的东西」要写在这里，
+       比如第 8 关的充电器：在广场借到、回小屋用得上。
+         Game.Save.setFlag('hasCharger', true)    在广场借到充电器
+         Game.Save.flag('hasCharger')             小屋里问一句「有没有充电器」
+       关卡里写 ctx.director.save.flag(...) / ctx.director.save.setFlag(...) 就行。 */
+    flag(key) { return !!this.game().flags[key]; },
+    setFlag(key, v) {
+      const g = this.game();
+      if (v === undefined) v = true;
+      g.flags[key] = !!v;
+      this.commit();
+      return g.flags[key];
+    },
+
     addCoins(n) {
       this.game().coins += n;
       this.commit();

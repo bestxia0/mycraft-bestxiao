@@ -176,13 +176,24 @@
       el.innerHTML = text.replace(/\bE\b/, '<b>E</b>');
     },
 
-    /* 屏幕最下面那条操作说明（关卡写了 noJump:true 就换成「这一关不能跳」那条） */
+    /* 屏幕最下面那条操作说明
+       关卡写了 noJump:true 就换成「这一关不能跳」那条；
+       写了 shrink:true 就多一句「R 变小」（第 8 关风扇小屋）。
+       老写法 hintBar(true/false) 照样能用。 */
     HINT_JUMP: 'WASD / 方向键 移动 · 空格 跳跃 · E 交互 · F 挥武器 · 鼠标拖拽转视角 · Esc 暂停',
     HINT_NO_JUMP: 'WASD / 方向键 移动 · E 交互 · F 挥武器 · 鼠标拖拽转视角 · Esc 暂停（这一关不能跳）',
-    hintBar(jumpEnabled) {
+    HINT_SHRINK: 'R 变小 / 变回来 · WASD / 方向键 移动 · 空格 跳跃 · E 交互 · F 挥武器 · 鼠标拖拽转视角',
+    HINT_SHRINK_NO_JUMP: 'R 变小 / 变回来 · WASD / 方向键 移动 · E 交互 · F 挥武器 · 鼠标拖拽转视角（这一关不能跳）',
+    hintBar(opts) {
       const el = this.D.hintBar;
       if (!el) return;
-      const text = jumpEnabled === false ? this.HINT_NO_JUMP : this.HINT_JUMP;
+      /* 老写法：hintBar(false) = 不能跳 */
+      if (typeof opts !== 'object' || opts === null) opts = { jump: opts !== false };
+      const jump = opts.jump !== false;
+      const shrink = !!opts.shrink;
+      const text = shrink
+        ? (jump ? this.HINT_SHRINK : this.HINT_SHRINK_NO_JUMP)
+        : (jump ? this.HINT_JUMP : this.HINT_NO_JUMP);
       if (el.textContent !== text) el.textContent = text;
     },
 
