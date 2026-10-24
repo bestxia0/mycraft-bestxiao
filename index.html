@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>方块小勇士 · 3D 卡通闯关小游戏</title>
+<link rel="stylesheet" href="src/style.css" />
+</head>
+<body>
+<canvas id="scene"></canvas>
+
+<!-- ============ 启动画面（正在加载关卡脚本） ============ -->
+<div id="bootScreen" class="layer overlay">
+  <div class="panel start-panel">
+    <div class="game-logo"><h1>方块小勇士</h1></div>
+    <p class="subtitle" id="bootMsg">正在准备 3D 世界…</p>
+    <div class="boot-bar"><i id="bootFill"></i></div>
+    <p class="tip" id="bootTip">第一次打开会慢一点点，之后就是飞快啦～</p>
+  </div>
+</div>
+
+<!-- ============ 游戏 HUD ============ -->
+<div id="hud" class="layer hidden">
+  <div class="topbar">
+    <div class="quest-card">
+      <div class="quest-title" id="questTitle">当前任务</div>
+      <div id="questText">走出广场，看看周围有什么吧！</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><span class="ico">🪙</span><span id="coinCount">0</span></div>
+      <div class="stat hidden" id="itemStat"><span class="ico">🎒</span><span id="itemCount">0</span></div>
+      <div class="stat hidden" id="progressStat"><span class="ico">📜</span><span id="progressText">0 / 0</span></div>
+      <button id="pauseBtn" class="icon-btn" title="暂停 / 菜单">⏸</button>
+    </div>
+  </div>
+
+  <div id="zoneTag" class="zone-tag">方块小镇 · 广场</div>
+
+  <!-- 擂台关专用：倒计时 + 自己的血条 + 还剩几个对手 -->
+  <div id="battleHud" class="battle-hud hidden">
+    <div class="battle-time" id="battleTime">09:00</div>
+    <div class="battle-bar"><i id="battleHp"></i></div>
+    <div class="battle-alive" id="battleAlive">对手 4</div>
+  </div>
+
+  <div id="prompt" class="prompt hidden">按 <b>E</b> 交互</div>
+  <div id="toasts" class="toasts"></div>
+  <div id="hintBar" class="hint-bar">
+    WASD / 方向键 移动 · 空格 跳跃 · E 交互 · F 挥武器 · 鼠标拖拽转视角 · Esc 暂停
+  </div>
+</div>
+
+<!-- ============ 触屏控制（手机 / 平板） ============ -->
+<div id="touchLayer" class="layer hidden">
+  <div id="stickZone" class="stick-zone"><div id="stickKnob" class="stick-knob"></div></div>
+  <div id="lookZone" class="look-zone"></div>
+  <button id="btnJump" class="touch-btn jump">跳</button>
+  <button id="btnAtk" class="touch-btn atk">打</button>
+  <button id="btnAct" class="touch-btn act">E</button>
+</div>
+
+<!-- ============ NPC 对话框 ============ -->
+<div id="dialogueBar" class="layer hidden">
+  <div class="dialogue-box">
+    <div class="dialogue-name" id="dlgName">村长爷爷</div>
+    <div class="dialogue-text" id="dlgText"></div>
+    <div class="dialogue-tip" id="dlgTip">▶ 按 E 继续</div>
+  </div>
+</div>
+
+<!-- ============ 开始界面 ============ -->
+<div id="startScreen" class="layer overlay hidden">
+  <div class="panel start-panel">
+    <div class="game-logo">
+      <h1>方块小勇士</h1>
+      <p class="subtitle">3D 卡通闯关小游戏 · 在方块小镇里探索每一个世界</p>
+    </div>
+    <div class="start-arts">🧙‍♂️ 🗡️ 🎁 📚</div>
+
+    <div class="profile-row">
+      <span class="profile-label">小朋友：</span>
+      <div id="profileChips" class="profile-chips"></div>
+      <button id="newProfileBtn" class="btn ghost small">＋ 新档案</button>
+    </div>
+
+    <button id="startBtn" class="btn primary big">开始冒险</button>
+
+    <div class="start-actions">
+      <button id="levelsBtn" class="btn ghost small">🗺 关卡一览</button>
+      <button id="soundBtn" class="btn ghost small">🔊 声音：开</button>
+      <button id="exportBtn" class="btn ghost small">💾 导出存档</button>
+      <button id="importBtn" class="btn ghost small">📥 导入存档</button>
+    </div>
+
+    <div class="keys">
+      <div><b>W A S D</b> 或 方向键 走路 · <b>空格</b> 跳跃</div>
+      <div><b>鼠标拖拽</b> 转视角 · <b>滚轮</b> 缩放 · <b>双击</b> 锁定鼠标</div>
+      <div><b>E</b> 说话 / 读石碑 / 开宝箱 / 进门 ｜ <b>F</b> 挥武器打对手</div>
+      <div><b>Esc</b> 暂停菜单（换小朋友、导出存档、重新开始）</div>
+      <div>手机上：左边摇杆走路，右边滑动转视角，右下角「跳」和「E」</div>
+    </div>
+    <p class="tip">进度会自动保存在这台电脑上，关掉网页也不会丢～</p>
+  </div>
+</div>
+
+<!-- ============ 暂停菜单 ============ -->
+<div id="pauseModal" class="layer overlay hidden">
+  <div class="panel modal-panel">
+    <div class="panel-head">
+      <span class="chip">⏸ 暂停</span>
+      <button class="icon-btn" id="pauseClose">✕</button>
+    </div>
+    <h2 class="pause-title">先休息一下吧～</h2>
+    <div id="pauseInfo" class="pause-info"></div>
+    <div class="modal-foot column">
+      <button id="resumeBtn" class="btn primary">继续玩</button>
+      <button id="hubBtn" class="btn ghost">回中央广场 🏠</button>
+      <button id="switchBtn" class="btn ghost">换一个小朋友 👧</button>
+      <button id="pauseHelpBtn" class="btn ghost small">操作说明</button>
+      <button id="pauseResetBtn" class="btn danger small">重新开始这一局（清空进度）</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="importFile" accept="application/json,.json" style="display:none" />
+
+<!-- 所有弹窗（谜语、锻造台、通关、认字…）都动态塞进这里 -->
+<div id="modalRoot"></div>
+
+<!-- ============ 引擎（顺序不要改） ============ -->
+<script src="vendor/three.min.js"></script>
+<script src="src/engine/namespace.js"></script>
+<script src="src/engine/textures.js"></script>
+<script src="src/engine/audio.js"></script>
+<script src="src/engine/particles.js"></script>
+<script src="src/engine/save.js"></script>
+<script src="src/engine/blocks.js"></script>
+<script src="src/engine/collider.js"></script>
+<script src="src/engine/entities.js"></script>
+<script src="src/engine/player.js"></script>
+<script src="src/engine/environment.js"></script>
+<script src="src/engine/sceneFx.js"></script>
+<script src="src/engine/ui.js"></script>
+<script src="src/engine/quiz.js"></script>
+<script src="src/engine/interactions.js"></script>
+<script src="src/engine/dialogue.js"></script>
+<script src="src/engine/registry.js"></script>
+<script src="src/engine/director.js"></script>
+
+<!-- ============ 内容数据（装备 / 题库总管理 / 汉字） ============ -->
+<script src="src/content/items.js"></script>
+<script src="src/content/questions.js"></script>
+<script src="src/content/hanzi.js"></script>
+
+<!-- ============ 题库清单（分类题库文件由 main.js 按清单动态加载） ============ -->
+<script src="src/content/banks/index.js"></script>
+
+<!-- ============ 关卡清单 + 启动 ============ -->
+<script src="src/levels/index.js"></script>
+<script src="src/main.js"></script>
+</body>
+</html>
