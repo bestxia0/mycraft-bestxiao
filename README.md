@@ -6,7 +6,8 @@
 它是为「**每天和小朋友一起加 1~2 个新关卡**」设计的：
 所有关卡都在一张**开放式地图（方块小镇）**上，加一个新关卡只要复制一个文件夹 + 改一行清单。
 
-**当前版本 v2.4.1** · 小镇广场 + 5 个关卡 · 谜语 65 道 / 常识 38 道 · 纯离线。
+**当前版本 v2.5.0** · 小镇广场 + 5 个关卡 · 谜语 65 道 / 常识 38 道 ·
+**每关一首背景音乐**（能开能关）· 纯离线。
 
 > 想加关卡 / 改代码？先看 **`AGENTS.md`**（项目结构 + 关卡 API 速查 + 验证流程 + 多 Agent 协作）。
 > 想和小朋友一起口述设计新关卡？看 **`docs/工作流程.md`**（口述 → 设计卡 → 开发 → 试玩验收）
@@ -41,6 +42,7 @@ zsh scripts/serve.sh            # 起本地服务器（默认 8777 端口）
 | 挥武器（第 4 关打人用） | `F` | 右下角「打」 |
 | 缩放镜头 | 鼠标滚轮 | — |
 | 暂停 / 菜单 | `Esc` | 右上角 ⏸ |
+| 背景音乐 开 / 关 | 开始界面 `🎵 音乐` 按钮 · 暂停菜单 `🎵 背景音乐` | 同左 |
 
 ---
 
@@ -114,6 +116,32 @@ zsh scripts/serve.sh            # 起本地服务器（默认 8777 端口）
 
 ---
 
+## 四之二、背景音乐（v2.5.0 新增）
+
+**每一关都有自己的背景音乐**，一进关就自动换上那一关的曲子：
+
+| 关卡 | 曲子 | 听起来是 |
+| --- | --- | --- |
+| 🏠 方块小镇 · 广场 | 方块小镇 | 轻快、暖暖的，像早上出门玩 |
+| 🌳 第 1 关 谜语森林 | 谜语森林 | 有点神秘，探头探脑 |
+| 🎁 第 2 关 宝箱山谷 | 宝箱山谷 | 蹦蹦跳跳，一路找过去 |
+| 📚 第 3 关 汉字教室 | 汉字教室 | 安静、专心（不催小朋友） |
+| ⚔️ 第 4 关 圆形擂台 | 圆形擂台 | 紧张、热血 |
+| 🐎 第 5 关 沙漠逃亡 | 沙漠逃亡 | 急促 + 手鼓感，有点异域风 |
+
+**怎么关掉 / 打开**：
+
+- **开始界面**：「🎵 音乐：开 / 关」按钮（就在「🔊 声音」旁边）。
+- **玩的时候**：按 `Esc` 打开暂停菜单 → 「🎵 背景音乐：开 / 关」。
+
+设置**跟着每个小朋友的档案走**（换档案 / 导入存档会一起跟过去），关掉网页再打开还是关着的。
+
+> 曲子是**在浏览器里现场合成的原创 8-bit 音乐**（不是下载来的歌）：
+> 所以不用联网、不用担心版权、拷到别的小朋友电脑上双击就能听。
+> 想改曲子 / 给新关卡配一首 → 看 `docs/背景音乐.md`。
+
+---
+
 ## 五、想加一个新关卡？（大约 5 分钟）
 
 ```bash
@@ -152,7 +180,7 @@ mycraft-bestxiao/
 │   ├── main.js         启动器 + 主循环 + 调试工具（Game.debug）
 │   ├── engine/         ★引擎层★ 3D、物理、UI、存档、交互、答题弹窗、传送门…
 │   │                   （namespace / textures / audio / particles / save / blocks
-│   │                    collider / entities / player / environment / sceneFx
+│   │                    music / collider / entities / player / environment / sceneFx
 │   │                    ui / quiz / interactions / dialogue / registry / director）
 │   ├── content/        ★内容数据★ 纯数据：items（装备）/ questions（题库总管理）/ hanzi（汉字）
 │   │                   + banks/ 分类题库（谜语 7 个文件 + 常识 4 个文件，可手动编辑）
@@ -167,10 +195,11 @@ mycraft-bestxiao/
 │       └── desert-escape/  第 5 关 · 沙漠逃亡（props.js + level.js 两个文件）
 ├── levels/             ★关卡设计卡★（给小朋友口述用的，不是代码；见 docs/工作流程.md）
 ├── transcripts/        小朋友口述的转写稿（只增不改，见 docs/工作流程.md）
-├── docs/               协作规范（COORDINATION.md）+ 设计流程（工作流程.md / 关卡设计规范.md）+ preview/ 预览图
+├── docs/               协作规范（COORDINATION.md）+ 设计流程（工作流程.md / 关卡设计规范.md）
+│                       + 背景音乐.md（曲库与开关）+ preview/ 预览图
 ├── agents/             ★7 个角色提示词★（开新会话时贴进去，让多个 AI 并行干活）
 ├── program/            ★协作的活文件★：BOARD.md（看板）/ tasks/（任务卡）/ DECISIONS.md / CHANGELOG.md / ROADMAP.md
-├── scripts/            ★一键脚本★：serve / check / smoke / regress-all / test-level2 / test-arena / test-desert / test-errors / shots / shot-level
+├── scripts/            ★一键脚本★：serve / check / smoke / regress-all / test-level2 / test-arena / test-desert / test-music / test-errors / shots / shot-level
 └── work/               临时产物（截图、日志，可随时删，不进版本库）
 ```
 

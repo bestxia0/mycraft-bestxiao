@@ -96,6 +96,7 @@
     $('startScreen').classList.remove('hidden');
     renderProfiles();
     refreshSoundBtn();
+    refreshMusicBtn();
     updatePauseInfo();
 
     clock = new THREE.Clock();
@@ -111,6 +112,8 @@
     opts = opts || {};
     const prof = Game.Save.profile();
     Game.Sfx.setEnabled(prof.settings.sound !== false);
+    /* 背景音乐跟着存档里的设置走（换小朋友 / 导入存档都会走这里） */
+    if (Game.Music) Game.Music.setEnabled(prof.settings.music !== false);
     UI.stats({ coins: Game.Save.game().coins, items: director ? director.itemCount() : null });
     if (prof.settings.sound !== false) Game.Sfx.init();
     if (!opts.silent) {
@@ -253,6 +256,31 @@
     if (prof.settings.sound) Game.Sfx.click();
   }
 
+  /* ---------------- 背景音乐（v2.5.0） ----------------
+     曲库在 src/engine/music.js，每关一首（没配就放 default），看 docs/背景音乐.md。 */
+  function musicOn() { return Game.Save.profile().settings.music !== false; }
+  function refreshMusicBtn() {
+    const a = $('musicBtn');
+    if (a) a.textContent = musicOn() ? '🎵 音乐：开' : '🎵 音乐：关';
+    const b = $('pauseMusicBtn');
+    if (b) b.textContent = '🎵 背景音乐：' + (musicOn() ? '开' : '关');
+  }
+  /* 用户点过按钮之后才能出声：先 init()（建 AudioContext）再 play() */
+  function startMusic() {
+    if (!Game.Music) return;
+    Game.Music.init();
+    Game.Music.play();
+  }
+  function toggleMusic() {
+    const prof = Game.Save.profile();
+    prof.settings.music = !musicOn();
+    Game.Music.setEnabled(prof.settings.music);
+    if (prof.settings.music) startMusic();
+    Game.Save.flush();
+    refreshMusicBtn();
+    if (prof.settings.music) Game.Sfx.click();
+  }
+
   function importSave() {
     $('importFile').click();
   }
@@ -351,6 +379,7 @@
     if (fromStart) {
       $('startScreen').classList.add('hidden');
       director.begin();
+      startMusic();     /* 从「关卡一览」直接进来也要有音乐（点击 = 用户手势） */
     }
     director.go(id, { from: Game.Levels.hub() && Game.Levels.hub().id });
     updatePauseInfo();
@@ -363,6 +392,7 @@
       director.begin();
       Game.Sfx.init();
       Game.Sfx.levelUp();
+      startMusic();
       const save = Game.Save;
       if (Game.Levels.doneCount(save) || save.game().coins) {
         UI.toast('🌟 进度已恢复，继续冒险吧！', 'gold', 2800);
@@ -379,6 +409,7 @@
 
     $('newProfileBtn').addEventListener('click', openNewProfilePanel);
     $('soundBtn').addEventListener('click', toggleSound);
+    $('musicBtn').addEventListener('click', toggleMusic);
     $('exportBtn').addEventListener('click', function () { Game.Save.download(); });
     $('importBtn').addEventListener('click', importSave);
     $('levelsBtn').addEventListener('click', function () { openLevelsPanel(true); });
@@ -393,6 +424,7 @@
       updatePauseInfo();
     });
     $('switchBtn').addEventListener('click', openProfilesPanel);
+    $('pauseMusicBtn').addEventListener('click', toggleMusic);
     $('pauseResetBtn').addEventListener('click', resetGame);
     $('pauseHelpBtn').addEventListener('click', function () {
       UI.message({
@@ -401,6 +433,7 @@
           '<b>空格</b> 跳跃<br><b>鼠标拖拽</b> 转视角，<b>滚轮</b> 缩放，双击锁定鼠标<br>' +
           '<b>E</b> 交互（说话 / 读石碑 / 开宝箱 / 进传送门）<br>' +
           '<b>F</b> 挥武器（第 4 关「圆形擂台」里打对手用，武器越好打得越狠）<br>' +
+          '<b>🎵 背景音乐</b> 在暂停菜单里开 / 关（开始界面也有一个按钮）<br>' +
           '<b>Esc</b> 暂停菜单</p>' +
           '<p class="ui-text">头上有个黄色箭头，它一直指着你现在该去的地方 👆</p>'
       });

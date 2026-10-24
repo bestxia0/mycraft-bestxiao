@@ -7,14 +7,17 @@
 
 ## 一、现在游戏里有的关卡
 
-| 卡 | 关卡 | 代码 id | order | 一句话玩法 | 新教的一件事 | 状态 | 验收脚本 |
-|----|------|---------|-------|------------|--------------|------|----------|
-| [L00](L00-方块小镇广场.md) | 方块小镇 · 广场（大厅） | `hub-square` | 0 | 捡金币 / 跳跳乐 / 小迷宫 / 许愿池 + 一排传送门 | 传送门就是关卡入口 | 可玩 | `scripts/smoke.sh` |
-| [L01](L01-谜语森林.md) | 谜语森林 | `riddle-forest` | 10 | 读 6 座石碑猜谜语，全答对就开门 | 答错只给提示，**不揭露答案** | 可玩 | `scripts/test-level2.sh` |
-| [L02](L02-宝箱山谷.md) | 宝箱山谷 | `chest-valley` | 20 | 自己找 20 个宝箱（**没有箭头**）→ 先答常识题 → 锻造传说之剑 | 收集 + 答题 + 锻造 | 可玩 | `scripts/test-level2.sh` |
-| [L03](L03-汉字教室.md) | 汉字教室 | `hanzi-classroom` | 30 | 5 张字卡认字 + 小测验，学完找老师换一批 | 学习可以一直继续下去 | 可玩 | `scripts/regress-all.sh` |
-| [L04](L04-圆形擂台.md) | 圆形擂台 | `arena-battle` | 40 | 缩圈混战，把 6 个对手打下擂台 | 按 `F` 打人（用第 2 关炼的武器） | 可玩 | `scripts/test-arena.sh` |
-| [L05](L05-沙漠逃亡.md) | 沙漠逃亡 | `desert-escape` | 50 | 骑马 2 分钟逃出沙漠，超时自动回小镇重来 | 骑马 / 头上的箭头只给**大概**方向 | 可玩 | `scripts/test-desert.sh` |
+| 卡 | 关卡 | 代码 id | order | 一句话玩法 | 新教的一件事 | 背景音乐 | 状态 | 验收脚本 |
+|----|------|---------|-------|------------|--------------|----------|------|----------|
+| [L00](L00-方块小镇广场.md) | 方块小镇 · 广场（大厅） | `hub-square` | 0 | 捡金币 / 跳跳乐 / 小迷宫 / 许愿池 + 一排传送门 | 传送门就是关卡入口 | 方块小镇（100 bpm） | 可玩 | `scripts/smoke.sh` |
+| [L01](L01-谜语森林.md) | 谜语森林 | `riddle-forest` | 10 | 读 6 座石碑猜谜语，全答对就开门 | 答错只给提示，**不揭露答案** | 谜语森林（88 bpm） | 可玩 | `scripts/test-level2.sh` |
+| [L02](L02-宝箱山谷.md) | 宝箱山谷 | `chest-valley` | 20 | 自己找 20 个宝箱（**没有箭头**）→ 先答常识题 → 锻造传说之剑 | 收集 + 答题 + 锻造 | 宝箱山谷（112 bpm） | 可玩 | `scripts/test-level2.sh` |
+| [L03](L03-汉字教室.md) | 汉字教室 | `hanzi-classroom` | 30 | 5 张字卡认字 + 小测验，学完找老师换一批 | 学习可以一直继续下去 | 汉字教室（76 bpm） | 可玩 | `scripts/regress-all.sh` |
+| [L04](L04-圆形擂台.md) | 圆形擂台 | `arena-battle` | 40 | 缩圈混战，把 6 个对手打下擂台 | 按 `F` 打人（用第 2 关炼的武器） | 圆形擂台（138 bpm） | 可玩 | `scripts/test-arena.sh` |
+| [L05](L05-沙漠逃亡.md) | 沙漠逃亡 | `desert-escape` | 50 | 骑马 2 分钟逃出沙漠，超时自动回小镇重来 | 骑马 / 头上的箭头只给**大概**方向 | 沙漠逃亡（152 bpm） | 可玩 | `scripts/test-desert.sh` |
+
+> **背景音乐（v2.5.0 起）**：每关一首，曲子 `id` = 关卡 `id`，切关卡自动换曲；
+> 没配曲子的关卡放 `default`。曲库、开关、怎么改曲子都在 `docs/背景音乐.md`。
 
 ## 二、编号规则（2026-10-24 改过）
 
@@ -64,6 +67,7 @@ cd /Users/xiao/workspace/mycraft-bestxiao
 zsh scripts/check.sh                                   # 所有 JS 语法
 zsh scripts/with-server.sh zsh scripts/regress-all.sh   # 老 4 关全流程
 zsh scripts/with-server.sh zsh scripts/test-desert.sh   # 第 5 关专项
+zsh scripts/with-server.sh zsh scripts/test-music.sh    # 背景音乐专项（每关有曲子 / 开关 / 存档）
 zsh scripts/with-server.sh zsh scripts/smoke.sh         # 广场 + 5 关都能进、零报错
 ```
 

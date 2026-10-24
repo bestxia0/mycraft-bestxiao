@@ -33,7 +33,7 @@
       global: { coins: 0, flags: {} },
       inventory: { items: {} },
       levels: {},                 // { levelId: { done, data:{}, updatedAt } }
-      settings: { sound: true }
+      settings: { sound: true, music: true }
     };
   }
 
@@ -111,7 +111,9 @@
         p.inventory = p.inventory || { items: {} };
         p.inventory.items = p.inventory.items || {};
         p.levels = p.levels || {};
-        p.settings = p.settings || { sound: true };
+        p.settings = p.settings || {};
+        if (p.settings.sound === undefined) p.settings.sound = true;
+        if (p.settings.music === undefined) p.settings.music = true;   // v2.5.0 新增：背景音乐开关
       });
       return data;
     },

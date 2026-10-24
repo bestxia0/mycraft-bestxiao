@@ -223,6 +223,9 @@
 
       if (def.hint) Game.UI.toast(def.hint, 'gold', 4200, 'level-hint');
       if (def.onEnter) def.onEnter(ctx, opts);
+      /* 换关卡就换背景音乐（每关一首；没配就放 default，见 docs/背景音乐.md）。
+         用户还没点过按钮时 Music.play() 只记账不出声，等点了开始按钮才真的响。 */
+      if (Game.Music) Game.Music.play(def.id);
       Game.Events.emit('level:enter', def.id);
       Game.log.info('进入关卡：' + title);
       return ctx;
@@ -434,12 +437,14 @@
       if (this.state !== 'play') return;
       this.state = 'paused';
       this.player.input.keys = {};
+      if (Game.Music) Game.Music.pause();
       if (document.pointerLockElement) document.exitPointerLock();
     },
     resume() {
       if (Game.UI.anyOpen() || Game.Dialogue.isOpen()) return;
       this.state = 'play';
       this.player.clearQueue();
+      if (Game.Music) Game.Music.resume();
     },
 
     /* 换档案 / 清空进度后重新搭地图 */

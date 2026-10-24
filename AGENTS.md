@@ -6,8 +6,8 @@
 > 一句话目标：这是给「**家长 + 小朋友每天加 1~2 个关卡**」做的 3D 卡通闯关游戏，
 > 所以代码必须**极易扩展、极易验证**，宁可笨一点，也不要聪明。
 
-当前版本 **v2.4.1** · 纯静态（双击 `index.html` 就能玩）· 1 个小镇广场 + 5 个关卡 ·
-2 个题库大类（谜语 65 条 / 常识 38 条）
+当前版本 **v2.5.0** · 纯静态（双击 `index.html` 就能玩）· 1 个小镇广场 + 5 个关卡 ·
+2 个题库大类（谜语 65 条 / 常识 38 条）· 每关一首背景音乐（能开能关）
 
 ---
 
@@ -19,6 +19,7 @@
 | --- | --- | --- |
 | 加一个新关卡 | 第 4 节 | 复制 `src/levels/_TEMPLATE/` → 改 3 个字段 → 清单加一行 |
 | 改谜语 / 常识 / 汉字 / 装备 | 第 8 节 | 只改 `src/content/` 里的数据文件，不碰逻辑 |
+| 给某关换背景音乐 / 加新曲子 | `docs/背景音乐.md` | 只改 `src/engine/music.js` 里 `TRACKS` 的数据（key = 关卡 id） |
 | 给关卡加一种全新的玩法能力 | 第 3.4 节 CHANGE 卡 | 提给引擎架构师（C2），不要自己动 `src/engine/` |
 | 和其他 Agent 并行干活 | **第 3 节** | 领任务卡 → 只动自己名下的文件 → 写回执 |
 | 改完怎么验证 | 第 11 节 | `zsh scripts/check.sh` + `zsh scripts/regress-all.sh` |
@@ -49,7 +50,8 @@ mycraft-bestxiao/
 ├── scripts/           ★可复跑的验证脚本★（检查 / 回归 / 专项 / 截图）
 ├── levels/            ★关卡设计卡★（L00–L05 = 游戏内真实关卡，卡号跟源码走；点子放 _ideas/。见 3.9 节）
 ├── transcripts/       小朋友口述的转写稿（只增不改，E0 证据）
-├── docs/              COORDINATION.md（协作细则）/ 工作流程.md / 关卡设计规范.md / preview/ 预览图
+├── docs/              COORDINATION.md（协作细则）/ 工作流程.md / 关卡设计规范.md /
+│                      背景音乐.md（曲库 + 开关）/ preview/ 预览图
 └── work/              临时产物（截图、日志，可随时删，不进版本库）
 ```
 
@@ -92,6 +94,7 @@ src/
 │   ├── namespace.js    Game 命名空间、数学/随机工具、日志、常量、版本号
 │   ├── textures.js     canvas 生成的贴图 + 3D 文字标牌（makeLabelSprite）
 │   ├── audio.js        Game.Sfx —— WebAudio 合成音效（correct/wrong/chest/craft/hit/knock/shrink…）
+│   ├── music.js        Game.Music —— ★背景音乐★：每关一首，现场合成（曲库 + 开关，见 docs/背景音乐.md）
 │   ├── particles.js    粒子爆发
 │   ├── save.js         Game.Save —— 多档案 + 分关卡存档 + 导入导出 + 版本迁移
 │   ├── blocks.js       Game.Blocks —— ★积木工具箱★（地形、碰撞盒、scatter 铺装饰）
@@ -675,6 +678,11 @@ ctx.save.setDone(true)            // 标通关（一般用 ctx.complete 代替�
     所以改缩圈只用改 `rt.ring`，不用重设地面函数 —— 反过来，**别把 `setGround` 写在会重复调用的地方**。
 14. **答题面板不许放图案**：`Quiz` 只放文字；题目数据里的 `emoji` 不会显示（第 1 关的谜语就踩过）。
 15. **战斗数值改了要重跑专项脚本**：`zsh scripts/test-arena.sh`（血量 / 弹开 / 缩圈 / 通关 / 被打下去）。
+16. **背景音乐提前响不了是正常的**：浏览器不许在小朋友点按钮之前出声，
+    所以 `Music.play()` 在 `Music.init()` 之前只记 `current`、不出声
+    （别为了「一打开就有音乐」把 `init()` 挪到启动流程里 —— Chrome 会警告一整天）。
+    另外后台标签页的定时器会被掐到 1 秒一次，音乐会卡成电音，
+    所以切页签要自动 `pause()`（已经做了）。改了音乐相关的东西 → 跑 `scripts/test-music.sh`。
 
 ---
 
@@ -697,6 +705,7 @@ zsh scripts/test-arena.sh       # 3) 第 4 关专项（血量 / 弹开 / 缩圈 
 | `scripts/test-level2.sh` | 第 1/2 关专项：**不显示头顶箭头**、宝箱先答题、答错不开箱、题目不重复 |
 | `scripts/test-arena.sh` | 第 4 关专项（见上） |
 | `scripts/test-desert.sh` | 第 5 关专项：骑马 / 冲刺 / 箭头只给大概方向 / 龙卷风卷下马 / 仙人掌 / 小蛇 / 马随机生成 / 超时自动回城 / 绿洲通关 |
+| `scripts/test-music.sh` | 背景音乐专项：每关都有曲子 / 切关换曲 / 没点按钮不出声 / 关掉真的不响 / 暂停与切页签 / 存档字段与老存档迁移（见 `docs/背景音乐.md`） |
 | `scripts/test-errors.sh` | 跑五张地图 + 开面板，收集 `console.error` / 未捕获异常 |
 | `scripts/shots.sh` | 重拍 `docs/preview/*.png` 预览图 |
 | `scripts/shot-level.sh <id>` | 给**任意一关**拍一张预览图：`zsh scripts/with-server.sh zsh scripts/shot-level.sh desert-escape` |
@@ -772,7 +781,7 @@ Game.Save.exportJSON()          // 导出存档
 | **存档** | 多档案 + 分关卡 + 导入导出 + 迁移 | 备份到文件 / 云端、成就与统计页 |
 | **装备系统** | 稀有度 1~4 + 锻造配方；第 4 关按稀有度决定伤害 / 击退 / 僵直 | 装备属性影响移动 / 跳跃；装备栏与手动换武器 |
 | **战斗玩法** | 第 4 关：6 人机混战 + 双方弹开 + 每 3 分钟缩圈（3 次）+ 9 分钟加时 | 更多战斗关（守城堡、打 boss、本地双人对战）、观战镜头 |
-| **世界感** | 每关可换天气（`theme`） | 昼夜循环、音效包、过场动画（`Game.Cue` / `Game.Queue`） |
+| **世界感** | 每关可换天气（`theme`）+ **每关一首背景音乐**（v2.5.0，`Game.Music`，能开能关） | 昼夜循环、更多曲子 / 音效包、过场动画（`Game.Cue` / `Game.Queue`） |
 | **协作** | 看板 + 任务卡 + 文件所有权（v2.3.0） | 每张卡一个 git 分支 / worktree；QA 报告自动汇总 |
 
 ### 关卡点子池（随时挑一个做）
@@ -790,6 +799,11 @@ Game.Save.exportJSON()          // 导出存档
 
 > 详细版（含每张任务卡）在 `program/CHANGELOG.md`。
 
+- **v2.5.0**（背景音乐）：新增引擎 `engine/music.js`（`Game.Music`）——
+  **每关一首现场合成的原创曲子**（曲子 id = 关卡 id，切关自动换曲，没配就放 `default`），
+  开始界面 + 暂停菜单各有 `🎵 音乐：开 / 关` 按钮，开关存在档案里（`settings.music`，默认开，
+  老存档自动补字段）；新增 `scripts/test-music.sh` 与 `docs/背景音乐.md`（含曲库表 / 怎么改曲子）。
+  坑：浏览器不许在用户点按钮之前出声，所以 `Music.play()` 在 `init()` 之前**只记账不出声**。
 - **v2.3.0**（迁移 + 答题体系 + 擂台手感）：
   项目搬到 `/Users/xiao/workspace/mycraft-bestxiao`，并加上**多 Agent 并行协作机制**
   （与「关卡设计卡」系统桥接见第 3.9 节：`levels/` 设计卡 → `program/tasks/` 实现卡 → `src/levels/` 代码）

@@ -6,6 +6,62 @@
 
 ---
 
+## v2.5.0 · 2026-10-24
+
+**主题**：加**背景音乐**（每关一首，设置里能开 / 关）
+
+### 为什么
+- 用户要求：「增加个背景音乐，你找几个比较合适的背景音乐。然后游戏设置里面可以开启背景音乐，
+  也可以关闭背景音乐。加游戏的趣味性」。
+
+### 新增：引擎层 `src/engine/music.js`（`Game.Music`）
+- 和音效（`Game.Sfx`）同一个套路：**用 WebAudio 现场合成，零素材、零联网、零版权问题**，
+  和「双击 `index.html` 就能玩」的离线要求不冲突。
+- 一首曲子 = 4 小节和弦 + 4 小节主旋律 + 一种鼓点循环（约 10 秒一循环），
+  数据就是几行「简谱字符串」，家长 / 小朋友想改随时改。
+- **每关一首**，曲子 `id` = 关卡 `id`，切关卡自动换曲（关卡代码一个字都不用改）：
+
+  | 曲子 | 用在哪 | 速度 / 音色 / 鼓点 | 感觉 |
+  | --- | --- | --- | --- |
+  | 方块小镇 | 广场 | 100 / triangle / pop | 轻快、暖暖的 |
+  | 谜语森林 | 第 1 关 | 88 / square / soft | 有点神秘 |
+  | 宝箱山谷 | 第 2 关 | 112 / square / pop | 蹦蹦跳跳 |
+  | 汉字教室 | 第 3 关 | 76 / sine / soft | 安静、专心 |
+  | 圆形擂台 | 第 4 关 | 138 / square / tense | 紧张热血 |
+  | 沙漠逃亡 | 第 5 关 | 152 / square / exotic | 急促 + 手鼓感 |
+  | default | 兜底（新关卡还没配曲子时） | 100 / triangle / pop | 不出戏 |
+
+- 对外接口：`init()` / `play(id)` / `stop()` / `pause()` / `resume()` / `setEnabled()` /
+  `toggle()` / `setVolume()` / `current` / `playing` / `tracks`。
+
+### 游戏里怎么开 / 关
+- **开始界面**：`🎵 音乐：开 / 关` 按钮（`#musicBtn`，在「声音」旁边）。
+- **暂停菜单（Esc）**：`🎵 背景音乐：开 / 关` 按钮（`#pauseMusicBtn`）；
+  操作说明里也加了一行提示。
+- 开关存在**每个小朋友的存档**里（`settings.music`，默认开），换档案 / 导入存档会一起跟过去；
+  老存档（v2.4.x 及以前）载入时自动补上这个字段，**进度一个都不丢**。
+- 浏览器不许在小朋友点按钮之前自动出声 → 点「开始冒险」（或从关卡一览点「进去玩」）之后才响
+  （`Music.play()` 在此之前只记住该放哪首）。切到别的页签会自动暂停，回来继续；
+  打开暂停菜单音乐会暂停，点「继续玩」接着放。
+
+### 改了哪些文件
+- 新增：`src/engine/music.js`、`scripts/test-music.sh`、`docs/背景音乐.md`
+- 引擎：`index.html`（引入 `music.js` + 两个按钮）、`src/engine/save.js`（`settings.music` + 迁移）、
+  `src/engine/director.js`（切关换曲 / 暂停续播）、`src/main.js`（开关按钮 + 首次点击才出声）
+- 文档：本文件、`program/DECISIONS.md`（D-009）、`README.md`、`AGENTS.md`、`docs/工作流程.md`、
+  `levels/README.md` 与 6 张关卡卡（每关写明用哪首曲子）
+
+### 验证（全绿）
+- `zsh scripts/check.sh` → 43 个 JS 文件语法全通过。
+- `zsh scripts/with-server.sh zsh scripts/test-music.sh` → A~J 全绿
+  （未点按钮不出声 / 每关都有曲子 / 切关换曲 / 兜底 default / 暂停菜单暂停恢复 /
+  关掉真的不响且调度器已清 / 存档字段与老存档迁移 / 切页签暂停恢复 / 音量接口）。
+- `zsh scripts/with-server.sh zsh scripts/regress-all.sh` → 老 4 关全流程通过。
+- `zsh scripts/with-server.sh zsh scripts/test-desert.sh` → 第 5 关专项 14 段全绿。
+- `zsh scripts/with-server.sh zsh scripts/test-errors.sh` → `errors: []`、`warns: []`。
+
+---
+
 ## v2.4.1 · 2026-10-24
 
 **主题**：把 `levels/` 关卡说明重新对齐游戏源码（**玩法一行没改**）
